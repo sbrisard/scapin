@@ -1,0 +1,124 @@
+\documentclass[draft, appendixprefix=true, chapterprefix=true, fontsize=12pt, numbers=noendperiod]{scrbook}
+\addtokomafont{disposition}{\rmfamily}
+\addtokomafont{caption}{\footnotesize}
+\setkomafont{descriptionlabel}{\normalfont\bfseries}
+\setcapindent{0em}
+
+\title{Gollum}
+\author{Sébastien Brisard}
+
+\usepackage{amsfonts}
+\usepackage[fleqn]{amsmath}
+\setlength{\mathindent}{1ex}
+\usepackage{amssymb}
+
+\usepackage{amsthm}
+
+\usepackage{csquotes}
+
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+
+\usepackage[backend=biber,bibencoding=utf8,doi=false,giveninits=true,isbn=false,maxnames=10,minnames=5,sortcites=true,style=alphabetic-verb,texencoding=utf8,url=false]{biblatex}
+%\addbibresource{.bib}
+
+\usepackage{unicode-math}
+\setmainfont{XITS}
+\setmathfont{XITS Math}
+
+\usepackage[breaklinks=true,colorlinks=true,linktocpage=true, pdfauthor={Sébastien Brisard}, pdfsubject={},pdftitle={Gollum},unicode=true,urlcolor=blue]{hyperref}
+
+\usepackage[notref, notcite]{showkeys}
+\renewcommand{\showkeyslabelformat}[1]{\color{red}\normalfont\scriptsize\ttfamily#1}
+
+\usepackage{stmaryrd}
+
+\DeclareMathOperator{\curl}{\textbf{rot}}
+\newcommand{\D}{{\mathrm d}}
+\newcommand{\dbldot}{\mathbin{\mathord{:}}}
+\newcommand{\I}{\mathrm{i}}
+\newcommand{\integers}{\mathbb{Z}}
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\symgrad}{\tens\epsilon}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\E}{\mathrm e}
+\AtBeginDocument{ % See http://tex.stackexchange.com/questions/117990/
+  \DeclareMathOperator{\asym}{\symbfsf{asym}}
+  \let\div\undefined
+  \DeclareMathOperator{\div}{div}
+  \DeclareMathOperator{\vdiv}{\textbf{div}}
+  \DeclareMathOperator{\tdiv}{\textbf{\textsf{div}}}
+  \DeclareMathOperator{\grad}{\symbf{grad}}
+  \DeclareMathOperator{\tgrad}{\symbfsf{grad}}
+  \DeclareMathOperator{\sym}{\symbfsf{sym}}
+  \newcommand{\tens}[1]{\symbfsf{#1}}
+  \renewcommand{\vec}[1]{\symbf{#1}}
+  \newcommand{\vecup}[1]{\symbf{#1}}
+
+  \newcommand{\PI}{\symup{\pi}}
+}
+
+\begin{document}
+\maketitle
+
+\chapter{Theory}
+
+In this chapter, we discuss various boundary-value problems in a periodic
+setting. The \(d\)-dimensional periodic cell \(\Omega\subset\reals^d\) has
+dimensions \(L_1\times L_2\times\cdots L_d\)
+\begin{equation}
+  \label{eq:1}
+  \Omega=(0, L_1)\times(0, L_2)\times\cdots\times(0, L_d)
+\end{equation}
+and \(V=L_1L_2\cdots L_d\) denotes its (\(d\)-dimensional) volume.
+
+Owing to the periodic setting, the fields that are involved in these various
+BVPs will be expanded in Fourier series. \(\tens T\) being a
+\(\Omega\)-periodic tensor field
+\begin{equation}
+  \label{eq:2}
+  \tens T(\vec x)=\sum_{n\in\integers^d}\mathcal F(\tens T)(\vec k_n)\exp(\I
+  \vec k_n\cdot\vec x),
+\end{equation}
+where the wave vectors \(\vec k_n\) are given by
+\begin{equation}
+  \label{eq:3}
+  \vec k_n=\sum_{i=1}^d\frac{2\pi n_i}{L_i}\vec e_i,
+\end{equation}
+while the Fourier coefficients are defined as follows
+\begin{equation}
+  \label{eq:5}
+  \mathcal F(\tens T)(\vec k)=\frac1V\int_{\vec x\in\Omega}\tens T(\vec x)
+  \exp(-\I\vec k\cdot\vec x)\,\D x_1\cdots\D x_d.
+\end{equation}
+
+It is recalled that the Fourier coefficients of the gradient and divergence of
+\(\tens T\) can readily be computed from the Fourier coefficients of
+\(\tens T\)
+\begin{equation}
+  \label{eq:4}
+  \mathcal F(\tgrad\tens T)(\vec k)=\mathcal F(\tens T)(\vec k)\otimes\vec k
+  \quad\text{and}\quad
+  \mathcal F(\tdiv\tens T)(\vec k)=\mathcal F(\tens T)(\vec k)\cdot\vec k.
+\end{equation}
+
+When no confusion is possible, we will use the tilde to denote the Fourier
+coefficients: \(\tilde{\tens T}_n=\mathcal F(\tens T)(\vec k_n)\).
+
+\section{Continuous Green operators}
+
+\subsection{Conductivity}
+
+\subsection{Elasticity}
+
+\subsection{Hyperelasticity}
+
+\end{document}
+
+%%% Local Variables:
+%%% coding: utf-8
+%%% fill-column: 79
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: t
+%%% End:

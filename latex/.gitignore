@@ -1,0 +1,7 @@
+auto
+*.aux
+*.bcf
+*.log
+*.run.xml
+*.synctex.gz
+gollum.pdf
