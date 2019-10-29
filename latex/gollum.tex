@@ -38,6 +38,7 @@
 \newcommand{\dbldot}{\mathbin{\mathord{:}}}
 \newcommand{\I}{\mathrm{i}}
 \newcommand{\integers}{\mathbb{Z}}
+\newcommand{\integrable}{\mathrm{L}^2}
 \newcommand{\reals}{\mathbb{R}}
 \newcommand{\symgrad}{\tens\epsilon}
 \newcommand{\tr}{\operatorname{tr}}
@@ -57,6 +58,9 @@
 
   \newcommand{\PI}{\symup{\pi}}
 }
+\newcommand{\tensors}{\mathcal T}
+\newcommand{\stresses}{\mathcal S}
+\newcommand{\strains}{\mathcal E}
 
 \begin{document}
 \maketitle
@@ -110,6 +114,64 @@ coefficients: \(\tilde{\tens T}_n=\mathcal F(\tens T)(\vec k_n)\).
 \subsection{Conductivity}
 
 \subsection{Elasticity}
+
+We first define a few functional spaces; \(\tensors_2(\Omega)\) denotes the
+space of second-order, symmetric, tensor fields, with square-integrable
+components. Then, the space \(\tens\stresses(\Omega)\) of periodic,
+self-equilibrated stresses is defined as follows
+\begin{equation}
+  \label{eq:7}
+  \tens\sigma\in\stresses(\Omega)\iff\left\{
+  \begin{gathered}
+    \tens\sigma\in\tensors_2(\Omega)\\
+    \div\tens\sigma=\vec 0\text{ a.e in }\Omega\\
+    \tens\sigma\cdot\vec e_i\text{ is }L_i\vec e_i\text{-periodic for all }i=1, 2, \ldots, d\text{ (no summation),}
+  \end{gathered}
+  \right.
+\end{equation}
+where the last condition expresses the periodicity of tractions in all
+directions parallel to the sides of the unit-cell. The space
+\(\tens\strains(\Omega)\) of periodic, geometrically compatible strains is
+defined as follows
+\begin{equation}
+  \label{eq:8}
+  \tens\varepsilon\in\strains(\Omega)\iff\left\{
+  \begin{gathered}
+    \tens\varepsilon\in\tensors_2(\Omega)\\
+    \tens\varepsilon=\sym\grad\vec u\text{ a.e. in }\Omega\text{ for some vector
+      field }\vec u\\
+    \vec u\text{ has square-integrable components}\\
+    \vec u\text{ is }\Omega\text{-periodic.}
+  \end{gathered}
+  \right.
+\end{equation}
+Finally, we define the spaces of stresses and strains with zero average
+\begin{equation}
+  \label{eq:9}
+  \stresses_0(\Omega)=\bigl\{\tens\sigma\in\stresses(\Omega),
+  \langle\tens\sigma\rangle=\tens0\bigr\}
+  \quad\text{and}\quad
+  \strains_0(\Omega)=\{\tens\varepsilon\in\strains(\Omega),
+  \langle\tens\varepsilon\rangle=\tens0\bigr\}.
+\end{equation}
+
+
+We are now ready to define the periodic, fourth-order Green operator for
+strains \(\tens\Gamma\). Let \(\tens C\) be the homogeneous elastic stiffness
+of the body \(\Omega\)\footnote{In other words, \(\tens C\) is a constant,
+  fourth-order tensor with major and minor symmetries; furthermore, \(\tens C\)
+  is positive definite.}. Let \(\tens\tau\in\tensors_2(\Omega)\) be a
+prescribed tensor field (\emph{stress-polarization}). We want to find the
+equilibrium state of the body \(\Omega\), subjected to the eigenstress
+\(\tens\tau\) and periodic boundary conditions. In other words, we want to find
+the solution to the following problem
+\begin{equation}
+  \label{eq:6}
+  \text{Find }\tens\sigma\in\stresses_0(\Omega)
+  \text{ and }\tens\varepsilon\in\strains_0(\Omega)
+  \text{ such that }\tens\sigma=\tens C\dbldot\tens\varepsilon
+  \text{ a.e. in }\Omega.
+\end{equation}
 
 \subsection{Hyperelasticity}
 
