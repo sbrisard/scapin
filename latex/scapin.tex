@@ -19,8 +19,8 @@
 \usepackage{polyglossia}
 \setdefaultlanguage{english}
 
-\usepackage[backend=biber,bibencoding=utf8,doi=false,giveninits=true,isbn=false,maxnames=10,minnames=5,sortcites=true,style=alphabetic-verb,texencoding=utf8,url=false]{biblatex}
-%\addbibresource{.bib}
+\usepackage[backend=biber,bibencoding=utf8,doi=false,giveninits=true,isbn=false,maxnames=10,minnames=5,sortcites=true,style=authoryear,texencoding=utf8,url=false]{biblatex}
+\addbibresource{scapin.bib}
 
 \usepackage{unicode-math}
 \setmainfont{XITS}
@@ -240,14 +240,14 @@ The above relation defines a linear mapping between \(\tilde{\tens\tau}_n\) and
 \(\tilde{\tens\varepsilon}_n\). For each Fourier mode \(n\), we therefore
 introduce the fourth-order tensor \(\tilde{\tens\Gamma}_n\) with major and
 minor symmetries, such that
-\(\tilde{\tens\varepsilon}_n=-\tilde{\tens\Gamma}_n\dbldot{\tilde\tens\tau}_n\). From
+\(\tilde{\tens\varepsilon}_n=-\tilde{\tens\Gamma}_n\dbldot{\tilde{\tens\tau}}_n\). From
 Eq.~\eqref{eq:18}, it results that
 \(\tilde{\tens\Gamma}_n=\hat{\tens\Gamma(\vec k)}\) where, for arbitrary
 wave-vector \(\vec k\), \(\hat{\tens\Gamma}(\vec k)\) is a fourth-order tensor
 with major and minor symmetries, such that
 \begin{equation}
   \label{eq:18}
-  \hat{\tens\Gamma}(\vec k)\dbldot{\tilde\tens\tau}=\tfrac12\bigl[\bigl(\vec n
+  \hat{\tens\Gamma}(\vec k)\dbldot\tilde{\tens\tau}=\tfrac12\bigl[\bigl(\vec n
   \cdot\tens C\cdot\vec n\bigr)^{-1}\cdot\tilde{\tens\tau}\cdot\vec n\bigr]
   \otimes\vec n+\tfrac12\vec n\otimes\bigl[\bigl(\vec n\cdot\tens C\cdot\vec n
   \bigr)^{-1}\cdot\tilde{\tens\tau}\cdot\vec n\bigr],
@@ -292,17 +292,41 @@ easily inverted, since \(\vec n\otimes\vec n\) and
 of the ``\(\dbldot\)'' product)
 \begin{equation}
   \label{eq:23}
-  \bigl(\vec n\cdot\tens C\cdot\vec n\bigr)^{-1}=\bigl(\lambda+2\mu\bigr)^{-1}\vec n\otimes\vec n+\mu^{-1}\bigl(\tens I_2-\vec n\otimes\vec n\bigr),
+  2\mu\bigl(\vec n\cdot\tens C\cdot\vec n\bigr)^{-1}=\frac{1-2\nu}{1-\nu}\vec n
+  \otimes\vec n+2\bigl(\tens I_2-\vec n\otimes\vec n\bigr)=2\tens I_2-\frac1
+  {1-\nu}\vec n\otimes\vec n,
 \end{equation}
 from which it results that
 \begin{equation}
   \label{eq:24}
-  \bigl(\vec n\cdot\tens C\cdot\vec n\bigr)^{-1}\cdot\tilde{\tens\tau}\cdot\vec n=\bigl(\lambda+2\mu\bigr)^{-1}
+  2\mu\bigl(\vec n\cdot\tens C\cdot\vec n\bigr)^{-1}\cdot\tilde{\tens\tau}\cdot
+  \vec n=2\tilde{\tens\tau}\cdot\vec n-\frac{\vec n\cdot\tilde{\tens\tau}\cdot
+    \vec n}{1-\nu}\vec n
+\end{equation}
+and finally
+\begin{equation}
+  \label{eq:25}
+  2\mu\hat{\tens\Gamma}(\vec k)\dbldot\tilde{\tens\tau}=\bigl(\tilde{\tens\tau}
+  \cdot\vec n\bigr)\otimes\vec n+\vec n\otimes\bigl(\tilde{\tens\tau}\cdot\vec n
+  \bigr)-\frac{\vec n\cdot\tilde{\tens\tau}\cdot\vec n}{1-\nu}\vec n\otimes\vec
+  n.
 \end{equation}
 
-
+The components of the \(\hat{\tens\Gamma}\) tensor are then readily found
+\begin{equation}
+  \label{eq:26}
+  \hat{\Gamma}_{ijkl}(\vec k)=\frac1{4\mu}\bigl(\delta_{ik}n_jn_l+\delta_{il}n_j
+  n_k+\delta_{jk}n_in_l+\delta_{jl}n_in_k\bigr)-\frac{n_in_jn_kn_l}{2\mu\bigl(1-
+    \nu\bigr)},
+\end{equation}
+which coincide with classical expressions \parencite[see
+e.g.][]{suqu1990}. Implementation of Eq.~\eqref{eq:26} is cumbersome; it is
+only used for testing purposes. For the implementation of the Green operator
+itself, we use Eq.~\eqref{eq:25}.
 
 \subsection{Hyperelasticity}
+
+\printbibliography
 
 \end{document}
 
