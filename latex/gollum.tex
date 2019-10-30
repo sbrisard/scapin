@@ -169,9 +169,138 @@ the solution to the following problem
   \label{eq:6}
   \text{Find }\tens\sigma\in\stresses_0(\Omega)
   \text{ and }\tens\varepsilon\in\strains_0(\Omega)
-  \text{ such that }\tens\sigma=\tens C\dbldot\tens\varepsilon
+  \text{ such that }\tens\sigma=\tens C\dbldot\tens\varepsilon+\tens\tau
   \text{ a.e. in }\Omega.
 \end{equation}
+
+Owing to the periodic boundary conditions, we use Fourier series expansions of
+\(\tens\tau\), \(\tens\sigma\), \(\tens\varepsilon\) and \(\vec u\)
+\begin{equation}
+  \label{eq:10}
+  \begin{Bmatrix}
+    \tens\tau(\vec x)\\
+    \tens\sigma(\vec x)\\
+    \tens\varepsilon(\vec x)\\
+    \vec u(\vec x)
+  \end{Bmatrix}
+  =\sum_{n\in\integers^d}
+  \begin{Bmatrix}
+    \tilde{\tens\tau}_n\\
+    \tilde{\tens\sigma}_n\\
+    \tilde{\tens\varepsilon}_n\\
+    \tilde{\vec u}_n
+  \end{Bmatrix}
+  \exp(\I \vec k_n\cdot\vec x).
+\end{equation}
+
+The Fourier modes \(\tilde{\tens\sigma}_n\), \(\tilde{\tens\varepsilon}_n\) and
+\(\tilde{\vec u}_n\) solve the following equations (respectively: equilibrium,
+geometric compatibility, constitutive relation)
+\begin{subequations}
+  \label{eq:11}
+  \begin{gather}
+    \label{eq:15}
+    \tilde{\tens\sigma}_n\cdot\vec k_n=\vec 0\\
+    \label{eq:13}
+    \tilde{\tens\varepsilon}_n=\frac{\I}{2}\bigl(\tilde{\vec u}_n\otimes\vec k_n
+    +\vec k_n\otimes\tilde{\vec u}_n\bigr)\\
+    \label{eq:12}
+    \tilde{\tens\sigma}_n=\tens C\dbldot\tilde{\tens\varepsilon}_n
+    +\tilde{\tens\tau}_n.
+  \end{gather}
+\end{subequations}
+
+Plugging Eq.~\eqref{eq:12} into Eq.~\eqref{eq:13}, and recalling that
+\(\tens C\) has the minor symmetries, we find the following expression of
+\(\tilde{\tens\sigma}\)
+\begin{equation}
+  \label{eq:14}
+  \tilde{\tens\sigma}_n=\I\bigl(\tens C\cdot\vec k_n\bigr)\cdot\tilde{\vec u}_n
+  +\tilde{\tens\tau}_n.
+\end{equation}
+
+The Cauchy stress tensor being symmetric, Eq.~\eqref{eq:15} also reads
+\(\vec k\cdot\tilde{\tens{\sigma}}=\vec 0\) and
+\begin{equation}
+  \label{eq:16}
+  \tilde{\vec u}_n=\I\bigl(\vec k_n\cdot\tens C\cdot\vec k_n\bigr)^{-1}
+  \cdot\tilde{\tens\tau}_n\cdot\vec k_n
+\end{equation}
+which delivers the following expression for the Fourier modes of the strain
+field
+\begin{equation}
+  \label{eq:17}
+  \tilde{\tens\varepsilon}_n=-\tfrac12\bigl[\bigl(\vec k_n\cdot\tens C\cdot
+  \vec k_n\bigr)^{-1}\cdot\tilde{\tens\tau}_n\cdot\vec k_n\bigr]\otimes\vec k_n
+  -\tfrac12\vec k_n\otimes\bigl[\bigl(\vec k_n\cdot\tens C\cdot\vec k_n
+  \bigr)^{-1}\cdot\tilde{\tens\tau}_n\cdot\vec k_n\bigr].
+\end{equation}
+
+The above relation defines a linear mapping between \(\tilde{\tens\tau}_n\) and
+\(\tilde{\tens\varepsilon}_n\). For each Fourier mode \(n\), we therefore
+introduce the fourth-order tensor \(\tilde{\tens\Gamma}_n\) with major and
+minor symmetries, such that
+\(\tilde{\tens\varepsilon}_n=-\tilde{\tens\Gamma}_n\dbldot{\tilde\tens\tau}_n\). From
+Eq.~\eqref{eq:18}, it results that
+\(\tilde{\tens\Gamma}_n=\hat{\tens\Gamma(\vec k)}\) where, for arbitrary
+wave-vector \(\vec k\), \(\hat{\tens\Gamma}(\vec k)\) is a fourth-order tensor
+with major and minor symmetries, such that
+\begin{equation}
+  \label{eq:18}
+  \hat{\tens\Gamma}(\vec k)\dbldot{\tilde\tens\tau}=\tfrac12\bigl[\bigl(\vec n
+  \cdot\tens C\cdot\vec n\bigr)^{-1}\cdot\tilde{\tens\tau}\cdot\vec n\bigr]
+  \otimes\vec n+\tfrac12\vec n\otimes\bigl[\bigl(\vec n\cdot\tens C\cdot\vec n
+  \bigr)^{-1}\cdot\tilde{\tens\tau}\cdot\vec n\bigr],
+\end{equation}
+where \(\vec n=\vec k/\lVert\vec k\rVert\). Eq.~\eqref{eq:18} defines
+\(\hat{\tens\Gamma}(\vec k)\) by how it operates on second-order, symmetric
+tensors. A closed-form expression of this tensor can be derived in the case of
+an isotropic material, for which
+\begin{equation}
+  \label{eq:19}
+  \tens C=\lambda\tens I_2\otimes\tens I_2+2\mu\tens I_4,
+\end{equation}
+where \(\tens I_2\) (resp. \(\tens I_4\)) is the second-order
+(resp. fourth-order) identity tensor, and \(\lambda\), \(\mu\) are the Lamé
+coefficients. Then
+\begin{equation}
+  \label{eq:20}
+  \vec n\cdot\bigl(\tens I_2\otimes\tens I_2\bigr)\vec n=\vec n\otimes\vec n
+\end{equation}
+then (recalling that \(\lVert\vec n\rVert=1\))
+\begin{equation}
+  \label{eq:21}
+  \begin{aligned}[b]
+    \vec n\cdot\tens I_4\cdot\vec n&=\tfrac12 n_i\bigl(\delta_{ik}\delta_{jl}+
+    \delta_{il}\delta_{jk}\bigr)n_l\vec e_j\otimes\vec e_k=\tfrac12\bigl(n_kn_j
+    +n_in_i\delta_{jk}\bigr)\vec e_j\otimes\vec e_k\\
+    &=\tfrac12\bigl[\vec n\otimes\vec n+\bigl(\vec n\cdot\vec n\bigr)\tens I_2
+    \bigr]=\tfrac12\bigl(\vec n\otimes\vec n+\tens I_2\bigr)
+    =\vec n\otimes\vec n+\tfrac12\bigl(\tens I_2-\vec n\otimes\vec n\bigr)
+  \end{aligned}
+\end{equation}
+and finally
+\begin{equation}
+  \label{eq:22}
+  \vec n\cdot\tens C\cdot\vec n=\bigl(\lambda+2\mu\bigr)\vec n\otimes\vec n+\mu
+  \bigl(\tens I_2-\vec n\otimes\vec n\bigr)=2\mu\frac{1-\nu}{1-2\nu}\vec n
+  \otimes\vec n+\mu\bigl(\tens I_2-\vec n\otimes\vec n\bigr),
+\end{equation}
+where \(\nu\) denotes the Poisson ratio. The above second-order tensor is
+easily inverted, since \(\vec n\otimes\vec n\) and
+\(\tens I_2-\vec n\otimes\vec n\) are two orthogonal projectors (in the sense
+of the ``\(\dbldot\)'' product)
+\begin{equation}
+  \label{eq:23}
+  \bigl(\vec n\cdot\tens C\cdot\vec n\bigr)^{-1}=\bigl(\lambda+2\mu\bigr)^{-1}\vec n\otimes\vec n+\mu^{-1}\bigl(\tens I_2-\vec n\otimes\vec n\bigr),
+\end{equation}
+from which it results that
+\begin{equation}
+  \label{eq:24}
+  \bigl(\vec n\cdot\tens C\cdot\vec n\bigr)^{-1}\cdot\tilde{\tens\tau}\cdot\vec n=\bigl(\lambda+2\mu\bigr)^{-1}
+\end{equation}
+
+
 
 \subsection{Hyperelasticity}
 
