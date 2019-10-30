@@ -1,4 +1,4 @@
-#include <gollum.h>
+#include <scapin.h>
 
 void green_apply(double *tau, double *k, double mu, double nu, double *out) {
   const size_t dim = 3;

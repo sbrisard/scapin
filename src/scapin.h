@@ -1,5 +1,5 @@
-#ifndef __GOLLUM_H__
-#define __GOLLUM_H__
+#ifndef __SCAPIN_H__
+#define __SCAPIN_H__
 
 #include <glib.h>
 #include <math.h>
