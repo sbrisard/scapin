@@ -1,5 +1,16 @@
 #include <scapin.h>
 
+typedef sruct ScapinGreenOperator_ ScapinGreenOperator;
+typedef void scapin_green_operator_apply_t(ScapinGreenOperator *, double *,
+                                           double *);
+
+typedef struct ScapinGreenOperator_ {
+  size_t ndims;
+  size_t isize;
+  size_t osize;
+  scapin_green_operator_apply_t *apply;
+}
+
 void green_apply(double *tau, double *k, double mu, double nu, double *out) {
   const size_t dim = 3;
   const size_t sym = 6;
