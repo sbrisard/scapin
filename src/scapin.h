@@ -15,7 +15,8 @@ typedef struct ScapinGreenOperatorType_ ScapinGreenOperatorType;
 typedef struct ScapinGreenOperator_ ScapinGreenOperator;
 
 typedef void scapin_grop_dispose_t();
-typedef void scapin_grop_apply_t(ScapinGreenOperator *, double *, double *);
+typedef void scapin_grop_apply_t(ScapinGreenOperator const *, double const *,
+                                 double const *, double *);
 
 struct ScapinGreenOperatorType_ {
   char *name;
