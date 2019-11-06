@@ -19,16 +19,16 @@ typedef void scapin_grop_apply_t(ScapinGreenOperator const *, double const *,
                                  double const *, double *);
 
 struct ScapinGreenOperatorType_ {
-  char *name;
-  size_t ndims;
-  size_t isize;
-  size_t osize;
-  scapin_grop_apply_t *apply;
-  scapin_grop_dispose_t *dispose;
+  char const *name;
+  size_t const ndims;
+  size_t const isize;
+  size_t const osize;
+  scapin_grop_apply_t  * const apply;
+  scapin_grop_dispose_t * const dispose;
 };
 
 struct ScapinGreenOperator_ {
-  ScapinGreenOperatorType *type;
+  ScapinGreenOperatorType const *type;
   void *data;
 };
 
