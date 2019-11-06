@@ -1,5 +1,4 @@
 #include <scapin.h>
-#include <mandel.h>
 
 ScapinGreenOperator *scapin_grop_new() {
   return malloc(sizeof(scapin_grop_new));
@@ -69,8 +68,10 @@ void scapin_grop_hooke_3d_apply(ScapinGreenOperator *op, double *k, double *tau,
   double const mu = SCAPIN_GROP_HOOKE_DATA(op)->mu;
   double const nu = SCAPIN_GROP_HOOKE_DATA(op)->nu;
 
-  double tau_dot_k[dim];
-  mandel3d_tens2_dot_vec(tau, k, tau_dot_k);
+  double tau_dot_k[] = {
+      tau[0] * k[0] + M_SQRT1_2 * (tau[5] * k[1] + tau[4] * k[2]),
+      tau[1] * k[1] + M_SQRT1_2 * (tau[5] * k[0] + tau[3] * k[2]),
+      tau[2] * k[2] + M_SQRT1_2 * (tau[4] * k[0] + tau[3] * k[1])};
   double k_dot_tau_dot_k =
       k[0] * tau_dot_k[0] + k[1] * tau_dot_k[1] + k[2] * tau_dot_k[2];
   double const const1 = k_dot_tau_dot_k / (1. - nu);
