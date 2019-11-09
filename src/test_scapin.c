@@ -1,6 +1,8 @@
+#include <math.h>
+
 #include <glib.h>
 
-#include <scapin.h>
+#include "scapin.h"
 
 void test_grop_hooke_data(gconstpointer data) {
   const size_t ndims = *((size_t *)data);

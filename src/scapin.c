@@ -1,4 +1,6 @@
-#include <scapin.h>
+#include "math.h"
+
+#include "scapin.h"
 
 ScapinGreenOperator *scapin_grop_new() {
   return malloc(sizeof(scapin_grop_new));
