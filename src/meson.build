@@ -10,6 +10,6 @@ scapin_lib = library('scapin', ['scapin.c', 'scapin.h'],
 
 scapin_test = executable('test_scapin', 'test_scapin.c',
 			 link_with: scapin_lib,
-			 dependencies: glib)
+			 dependencies:  [math, glib])
 
 test('Tests of scapin', scapin_test)
