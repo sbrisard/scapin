@@ -24,7 +24,7 @@ typedef struct GrOpHookeData_ {
 } GrOpHookeData;
 
 ScapinGreenOperatorType const Hooke2D = {.name = "Hooke2D",
-                                         .ndims = 2,
+                                         .dim = 2,
                                          .isize = 3,
                                          .osize = 3,
                                          .apply = NULL,
@@ -34,7 +34,7 @@ void scapin_grop_hooke_3d_apply(ScapinGreenOperator const *, double const *,
                                 double const *, double *);
 
 ScapinGreenOperatorType const Hooke3D = {.name = "Hooke3D",
-                                         .ndims = 3,
+                                         .dim = 3,
                                          .isize = 6,
                                          .osize = 6,
                                          .apply = scapin_grop_hooke_3d_apply,

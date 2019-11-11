@@ -7,14 +7,14 @@
 #include <stdio.h>
 
 void test_grop_hooke_data(gconstpointer data) {
-  const size_t ndims = *((size_t *)data);
-  const size_t isize = (ndims * (ndims + 1)) / 2;
+  const size_t dim = *((size_t *)data);
+  const size_t isize = (dim * (dim + 1)) / 2;
   const size_t osize = isize;
   const double mu = 10.;
   const double nu = 0.3;
 
-  ScapinGreenOperator *op = scapin_grop_hooke_new(ndims, mu, nu);
-  g_assert_cmpint(op->type->ndims, ==, ndims);
+  ScapinGreenOperator *op = scapin_grop_hooke_new(dim, mu, nu);
+  g_assert_cmpint(op->type->dim, ==, dim);
   g_assert_cmpint(op->type->isize, ==, isize);
   g_assert_cmpint(op->type->osize, ==, osize);
   g_assert_cmpfloat(scapin_grop_hooke_mu(op), ==, mu);

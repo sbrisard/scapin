@@ -16,7 +16,7 @@ typedef void scapin_grop_apply_t(ScapinGreenOperator const *, double const *,
 
 struct ScapinGreenOperatorType_ {
   char const *name;
-  size_t const ndims;
+  size_t const dim;
   size_t const isize;
   size_t const osize;
   scapin_grop_apply_t  * const apply;
