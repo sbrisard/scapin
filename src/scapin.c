@@ -23,11 +23,14 @@ typedef struct GrOpHookeData_ {
   double nu;
 } GrOpHookeData;
 
+void scapin_grop_hooke_2d_apply(ScapinGreenOperator const *, double const *,
+                                double const *, double *);
+
 ScapinGreenOperatorType const Hooke2D = {.name = "Hooke2D",
                                          .dim = 2,
                                          .isize = 3,
                                          .osize = 3,
-                                         .apply = NULL,
+                                         .apply = scapin_grop_hooke_2d_apply,
                                          .dispose = NULL};
 
 void scapin_grop_hooke_3d_apply(ScapinGreenOperator const *, double const *,
@@ -66,6 +69,22 @@ double scapin_grop_hooke_mu(ScapinGreenOperator *op) {
 
 double scapin_grop_hooke_nu(ScapinGreenOperator *op) {
   return SCAPIN_GROP_HOOKE_DATA(op)->nu;
+}
+
+void scapin_grop_hooke_2d_apply(ScapinGreenOperator const *op, double const *k,
+                                double const *tau, double *out) {
+  double const mu = SCAPIN_GROP_HOOKE_DATA(op)->mu;
+  double const nu = SCAPIN_GROP_HOOKE_DATA(op)->nu;
+  double const k2 = k[0] * k[0] + k[1] * k[1];
+  double tau_k[] = {tau[0] * k[0] + M_SQRT1_2 * tau[2] * k[1],
+                    tau[1] * k[1] + M_SQRT1_2 * tau[2] * k[0]};
+  double const n_tau_n = (k[0] * tau_k[0] + k[1] * tau_k[1]) / k2;
+  double const const1 = n_tau_n / (1. - nu);
+  double const const2 = 1. / (2. * mu * k2);
+  out[0] = const2 * (k[0] * (2. * tau_k[0] - const1 * k[0]));
+  out[1] = const2 * (k[1] * (2. * tau_k[1] - const1 * k[1]));
+  double const const3 = M_SQRT2 * const2;
+  out[2] = const3 * (k[0] * tau_k[1] + k[1] * tau_k[0] - const1 * k[0] * k[1]);
 }
 
 void scapin_grop_hooke_3d_apply(ScapinGreenOperator const *op, double const *k,
