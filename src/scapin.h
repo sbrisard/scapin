@@ -1,10 +1,6 @@
 #ifndef __SCAPIN_H__
 #define __SCAPIN_H__
 
-#include <glib.h>
-#include <math.h>
-#include <stdlib.h>
-
 #if _WIN32
 #define DllExport __declspec(dllexport)
 #else
