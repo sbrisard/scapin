@@ -1,5 +1,5 @@
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include "scapin.h"
 
@@ -43,15 +43,15 @@ ScapinGreenOperatorType const Hooke3D = {.name = "Hooke3D",
 ScapinGreenOperator *scapin_grop_hooke_new(size_t ndims, double mu, double nu) {
   ScapinGreenOperator *op = scapin_grop_new();
   switch (ndims) {
-    case 2:
-      op->type = &Hooke2D;
-      break;
-    case 3:
-      op->type = &Hooke3D;
-      break;
-    default:
-      /* TODO Return error message. */
-      return NULL;
+  case 2:
+    op->type = &Hooke2D;
+    break;
+  case 3:
+    op->type = &Hooke3D;
+    break;
+  default:
+    /* TODO Return error message. */
+    return NULL;
   }
   GrOpHookeData *data = malloc(sizeof(GrOpHookeData));
   data->mu = mu;
@@ -73,10 +73,10 @@ void scapin_grop_hooke_3d_apply(ScapinGreenOperator const *op, double const *k,
   double const mu = SCAPIN_GROP_HOOKE_DATA(op)->mu;
   double const nu = SCAPIN_GROP_HOOKE_DATA(op)->nu;
   double const k2 = k[0] * k[0] + k[1] * k[1] + k[2] * k[2];
-  double tau_k[] = {
-      tau[0] * k[0] + M_SQRT1_2 * (tau[5] * k[1] + tau[4] * k[2]),
-      tau[1] * k[1] + M_SQRT1_2 * (tau[5] * k[0] + tau[3] * k[2]),
-      tau[2] * k[2] + M_SQRT1_2 * (tau[4] * k[0] + tau[3] * k[1])};
+  double tau_k[] = {tau[0] * k[0] + M_SQRT1_2 * (tau[5] * k[1] + tau[4] * k[2]),
+                    tau[1] * k[1] + M_SQRT1_2 * (tau[5] * k[0] + tau[3] * k[2]),
+                    tau[2] * k[2] +
+                        M_SQRT1_2 * (tau[4] * k[0] + tau[3] * k[1])};
   double const n_tau_n =
       (k[0] * tau_k[0] + k[1] * tau_k[1] + k[2] * tau_k[2]) / k2;
   double const const1 = n_tau_n / (1. - nu);

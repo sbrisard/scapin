@@ -58,36 +58,46 @@ void test_grop_hooke_3d_apply() {
   double const mu = 1.0;
   double const nu = 0.3;
 
+  const size_t num_k_norms = 3;
+  double const k_norm[] = {1.2, 3.4, 5.6};
+
+  double const delta_theta = M_PI / (num_theta - 1.);
+  double const theta_max = (num_theta - 0.5) * delta_theta;
+  double const delta_phi = 2 * M_PI / (double)num_phi;
+  double const phi_max = (num_phi - 0.5) * delta_phi;
+
   ScapinGreenOperator *gamma = scapin_grop_hooke_new(dim, mu, nu);
-  double exp[sym*sym];
-  double act[sym*sym];
+  double exp[sym * sym];
+  double act[sym * sym];
   double tau[sym];
   double eps[sym];
   double n[dim];
-
-  for (size_t i = 0; i < num_theta; i++) {
-    double const theta = M_PI * i / (num_theta - 1.);
-    for (size_t j = 0; j < num_phi; j++) {
-      double const phi = 2. * M_PI * j / (double)num_phi;
-      n[0] = sin(theta) * cos(phi);
-      n[1] = sin(theta) * sin(phi);
-      n[2] = cos(theta);
+  for (double theta = 0; theta < theta_max; theta += delta_theta) {
+    double const sin_theta = sin(theta);
+    double const cos_theta = cos(theta);
+    for (double phi = 0; phi < phi_max; phi += delta_phi) {
+      n[0] = sin_theta * cos(phi);
+      n[1] = sin_theta * sin(phi);
+      n[2] = cos_theta;
       grop_hooke_3d_matrix(n, nu, exp);
-      for (size_t k = 0; k < sym; k++) {
-        tau[k] = 1.;
-        gamma->type->apply(gamma, n, tau, eps);
-        for (size_t l = 0; l < sym; l++) {
-          act[k + sym * l] = eps[l];
+      for (size_t i = 0; i < num_k_norms; i++) {
+        double const k_vec[] = {k_norm[i] * n[0], k_norm[i] * n[1],
+                                k_norm[i] * n[2]};
+        for (size_t col = 0; col < sym; col++) {
+          tau[col] = 1.;
+          gamma->type->apply(gamma, k_vec, tau, eps);
+          for (size_t row = 0; row < sym; row++) {
+            act[col + sym * row] = eps[row];
+          }
+          tau[col] = 0.;
         }
-        tau[k] = 0.;
-      }
-      for (size_t ijkl = 0; ijkl < sym * sym; ijkl++) {
-        double const err = fabs(act[ijkl] - exp[ijkl]);
-        g_assert_cmpfloat(err, <=, 1e-12 * fabs(exp[ijkl]) + 1e-12);
+        for (size_t ijkl = 0; ijkl < sym * sym; ijkl++) {
+          double const err = fabs(act[ijkl] - exp[ijkl]);
+          g_assert_cmpfloat(err, <=, 1e-12 * fabs(exp[ijkl]) + 1e-12);
+        }
       }
     }
   }
-
   scapin_grop_free(gamma);
 }
 
