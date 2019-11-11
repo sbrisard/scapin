@@ -4,6 +4,8 @@
 
 #include "scapin.h"
 
+#include <stdio.h>
+
 void test_grop_hooke_data(gconstpointer data) {
   const size_t ndims = *((size_t *)data);
   const size_t isize = (ndims * (ndims + 1)) / 2;
@@ -67,8 +69,8 @@ void test_grop_hooke_3d_apply() {
     double const theta = M_PI * i / (num_theta - 1.);
     for (size_t j = 0; j < num_phi; j++) {
       double const phi = 2. * M_PI * j / (double)num_phi;
-      n[0] = sin(theta)*cos(phi);
-      n[1] = sin(theta)*sin(phi);
+      n[0] = sin(theta) * cos(phi);
+      n[1] = sin(theta) * sin(phi);
       n[2] = cos(theta);
       grop_hooke_3d_matrix(n, nu, exp);
       for (size_t k = 0; k < sym; k++) {
@@ -80,12 +82,11 @@ void test_grop_hooke_3d_apply() {
         tau[k] = 0.;
       }
       for (size_t ijkl = 0; ijkl < sym * sym; ijkl++) {
-	double const err = fabs(act[ijkl] - exp[ijkl]);
-	g_assert_cmpfloat(err, <=, 1e-12 * fabs(exp[ijkl]) + 1e-12);
+        double const err = fabs(act[ijkl] - exp[ijkl]);
+        g_assert_cmpfloat(err, <=, 1e-12 * fabs(exp[ijkl]) + 1e-12);
       }
     }
   }
-
 
   free(n);
   free(eps);
@@ -98,11 +99,11 @@ void test_grop_hooke_3d_apply() {
 void test_grop_hooke_setup_tests() {
   size_t *data1 = malloc(sizeof(size_t));
   data1[0] = 2;
-  g_test_add_data_func("/Hooke2D/data", data1, free);
+  g_test_add_data_func_full("/Hooke2D/data", data1, test_grop_hooke_data, free);
 
   size_t *data2 = malloc(sizeof(size_t));
   data2[0] = 3;
-  g_test_add_data_func("/Hooke3D/data", data2, free);
+  g_test_add_data_func_full("/Hooke3D/data", data2, test_grop_hooke_data, free);
 
   g_test_add_func("/Hooke3D/apply", test_grop_hooke_3d_apply);
 }
