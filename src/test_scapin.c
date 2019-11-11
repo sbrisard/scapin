@@ -59,11 +59,11 @@ void test_grop_hooke_3d_apply() {
   double const nu = 0.3;
 
   ScapinGreenOperator *gamma = scapin_grop_hooke_new(dim, mu, nu);
-  double *exp = malloc(sym * sym * sizeof(double));
-  double *act = malloc(sym * sym * sizeof(double));
-  double *tau = malloc(sym * sizeof(double));
-  double *eps = malloc(sym * sizeof(double));
-  double *n = malloc(dim * sizeof(double));
+  double exp[sym*sym];
+  double act[sym*sym];
+  double tau[sym];
+  double eps[sym];
+  double n[dim];
 
   for (size_t i = 0; i < num_theta; i++) {
     double const theta = M_PI * i / (num_theta - 1.);
@@ -88,11 +88,6 @@ void test_grop_hooke_3d_apply() {
     }
   }
 
-  free(n);
-  free(eps);
-  free(tau);
-  free(act);
-  free(exp);
   scapin_grop_free(gamma);
 }
 
