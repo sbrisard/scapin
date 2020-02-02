@@ -1,9 +1,6 @@
 using LinearAlgebra
 using Test
-
-include("Scapin.jl")
-
-using .Scapin
+using Scapin
 
 function greenop_matrix!(hooke::Hooke{T, DIM}, k::AbstractArray{T, 1},
                          out::AbstractArray{T,2}) where {T, DIM}
