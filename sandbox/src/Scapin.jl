@@ -18,7 +18,8 @@ kblock(hooke::Hooke, k::SVector{DIM, T}) where {DIM, T} = HookeBlock{T, DIM}(hoo
 
 size(::HookeBlock{T, 2}) where T = (3, 3)
 
-function Matrix(block::HookeBlock{T, 2}) where T
+# Notice this is general and will work also for other dimensions without any extra code
+function Matrix(block::HookeBlock{T}) where T
     n, m = size(block)
     mat = zeros(T, n, m)
     τ = zeros(T, m)
