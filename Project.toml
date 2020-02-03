@@ -1,6 +1,6 @@
 name = "Scapin"
 uuid = "90d657b6-93fc-4f0a-ab03-7d911a38ce4c"
-authors = ["Michael F. Herbst <info@michael-herbst.com>"]
+authors = ["Sébastien Brisard"]
 version = "0.1.0"
 
 [deps]
