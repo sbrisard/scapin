@@ -71,14 +71,14 @@ function block_matrix_ref(hooke::Hooke{T, DIM}, k::SVector{DIM, T}) where {T, DI
             mat[ij, kl] = w_ij*w_kl*(0.25*(δ_ik*n[j]*n[l]+δ_il*n[j]*n[k]+
                                            δ_jk*n[i]*n[l]+δ_jl*n[i]*n[k])-
                                      n[i]*n[j]*n[k]*n[l]/(2*(1-hooke.ν)))
-            mat[ij, kl] *= hooke.μ
+            mat[ij, kl] /= hooke.μ
         end
     end
     mat
 end
 
 @testset "Green operator for 2D linear elasticity" begin
-    hooke = Hooke{Float64, 2}(1.0, 0.3)
+    hooke = Hooke{Float64, 2}(5.6, 0.3)
     for k_norm ∈ [0.12, 2.3, 14.5]
         for θ ∈ LinRange(0., 2*π, 21)[1:end-1]
             k = @SVector [k_norm*cos(θ), k_norm*sin(θ)]
