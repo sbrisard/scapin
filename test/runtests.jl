@@ -36,6 +36,6 @@ end
         Γ_act = Matrix(kblock(hooke, n))
         Γ_exp = greenop_matrix_ref(hooke.ν, n)
 
-        @test Γ_act ≈ Γ_exp atol=1e-15
+        @test all(isapprox.(Γ_act, Γ_exp, atol=1e-15))
     end
 end
