@@ -84,22 +84,13 @@ function block_matrix_ref(hooke::Hooke{T,DIM}, k::SVector{DIM,T}) where {T,DIM}
             k = ij2i[kl]
             l = ij2j[kl]
             w_kl = kl <= DIM ? one(T) : sqrt(2 * one(T))
-            δ_ik = i == k ? 1 : 0
-            δ_il = i == l ? 1 : 0
-            δ_jk = j == k ? 1 : 0
-            δ_jl = j == l ? 1 : 0
-            mat[ij, kl] =
-                w_ij *
-                w_kl *
-                (
-                    (
-                        δ_ik * n[j] * n[l] +
-                        δ_il * n[j] * n[k] +
-                        δ_jk * n[i] * n[l] +
-                        δ_jl * n[i] * n[k]
-                    ) / 4 - n[i] * n[j] * n[k] * n[l] / (2 * (1 - hooke.ν))
-                )
-            mat[ij, kl] /= hooke.μ
+            δik_nj_nl = i == k ? n[j] * n[l] : zero(T)
+            δil_nj_nk = i == l ? n[j] * n[k] : zero(T)
+            δjk_ni_nl = j == k ? n[i] * n[l] : zero(T)
+            δjl_ni_nk = j == l ? n[i] * n[k] : zero(T)
+            aux1 = (δik_nj_nl + δil_nj_nk + δjk_ni_nl + δjl_ni_nk) / 4
+            aux2 = n[i] * n[j] * n[k] * n[l] / (2 * (1 - hooke.ν))
+            mat[ij, kl] = w_ij * w_kl * (aux1 - aux2) / hooke.μ
         end
     end
     mat
