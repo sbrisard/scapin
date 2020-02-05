@@ -84,11 +84,13 @@ end
 
 @testset "Green operator for 2D linear elasticity" begin
     hooke = Hooke{Float64, 2}(1.0, 0.3)
-    for θ ∈ LinRange(0., 2*π, 21)[1:end-1]
-        n = @SVector [cos(θ), sin(θ)]
-        Γ_act = block_matrix(hooke, n)
-        Γ_exp = block_matrix_ref(hooke, n)
+    for k_norm ∈ [0.12, 2.3, 14.5]
+        for θ ∈ LinRange(0., 2*π, 21)[1:end-1]
+            k = @SVector [k_norm*cos(θ), k_norm*sin(θ)]
+            act = block_matrix(hooke, k)
+            exp = block_matrix_ref(hooke, k)
 
-        @test all(isapprox.(Γ_act, Γ_exp, atol=1e-15))
+            @test all(isapprox.(act, exp, atol=1e-15))
+        end
     end
 end
