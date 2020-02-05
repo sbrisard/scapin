@@ -3,12 +3,20 @@ using Test
 using Scapin
 using StaticArrays
 
-function block_matrix_ref(hooke::Hooke{T, DIM}, k::SVector{2, T}) where {T, DIM}
-    sym = 3
-    ij2i = [1, 2, 1]
-    ij2j = [1, 2, 2]
+function block_matrix_ref(hooke::Hooke{T, DIM}, k::SVector{DIM, T}) where {T, DIM}
+    if DIM == 2
+        sym = 3
+        ij2i = [1, 2, 1]
+        ij2j = [1, 2, 2]
+    elseif DIM == 3
+        sym = 6
+        ij2i = [1, 2, 3, 2, 3, 1]
+        ij2j = [1, 2, 3, 3, 1, 2]
+    else
+        throw(ArgumentError("DIM must be 2 or 3 (was $DIM)"))
+    end
 
-    out = zeros(T, sym, sym)
+    mat = zeros(T, sym, sym)
     n = k/norm(k)
     for ij = 1:sym
         i = ij2i[ij]
@@ -22,13 +30,13 @@ function block_matrix_ref(hooke::Hooke{T, DIM}, k::SVector{2, T}) where {T, DIM}
             δ_il = i == l ? 1 : 0
             δ_jk = j == k ? 1 : 0
             δ_jl = j == l ? 1 : 0
-            out[ij, kl] = w_ij*w_kl*(0.25*(δ_ik*n[j]*n[l]+δ_il*n[j]*n[k]+
+            mat[ij, kl] = w_ij*w_kl*(0.25*(δ_ik*n[j]*n[l]+δ_il*n[j]*n[k]+
                                            δ_jk*n[i]*n[l]+δ_jl*n[i]*n[k])-
                                      n[i]*n[j]*n[k]*n[l]/(2*(1-hooke.ν)))
-            out[ij, kl] *= hooke.μ
+            mat[ij, kl] *= hooke.μ
         end
     end
-    out
+    mat
 end
 
 @testset "Green operator for 2D linear elasticity" begin
