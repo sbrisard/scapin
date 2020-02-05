@@ -1,6 +1,5 @@
-module Scapin
 using StaticArrays
-import Base: size, Matrix
+import Base: size
 
 export Hooke, block_apply!, block_matrix
 
@@ -36,15 +35,11 @@ function block_matrix(op::Hooke{T, DIM}, k::SVector{DIM, T}) where {T, DIM}
     mat
 end
 
-end
-
 # ==================== TESTS ====================
 
 using LinearAlgebra
 using StaticArrays
 using Test
-
-using .Scapin
 
 function block_matrix_ref(hooke::Hooke{T, DIM}, k::SVector{DIM, T}) where {T, DIM}
     if DIM == 2
