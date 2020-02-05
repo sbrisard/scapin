@@ -12,8 +12,8 @@ size(::Hooke{T, 2}) where T = (3, 3)
 size(::Hooke{T, 3}) where T = (6, 6)
 
 function block_apply!(out, hooke::Hooke{T, 2}, k, τ) where {T}
-    τk₁ = τ[1]*k[1]+τ[3]*k[2] / sqrt(2)
-    τk₂ = τ[2]*k[2]+τ[3]*k[1] / sqrt(2)
+    τk₁ = τ[1]*k[1]+τ[3]*k[2] / sqrt(2*one(T))
+    τk₂ = τ[2]*k[2]+τ[3]*k[1] / sqrt(2*one(T))
     nτn = (k[1]*τk₁+k[2]*τk₂) / sum(abs2, k)
     const1 = nτn / (1-hooke.ν)
     const2 = 1 / (2*hooke.μ*sum(abs2, k))
@@ -25,9 +25,9 @@ function block_apply!(out, hooke::Hooke{T, 2}, k, τ) where {T}
 end
 
 function block_apply!(out, hooke::Hooke{T, 3}, k, τ) where T
-    τk₁ = τ[1] * k[1] + (τ[6] * k[2] + τ[5] * k[3])/sqrt(2one(T))
-    τk₂ = τ[2] * k[2] + (τ[6] * k[1] + τ[4] * k[3])/sqrt(2one(T))
-    τk₃ = τ[3] * k[3] + (τ[5] * k[1] + τ[4] * k[2])/sqrt(2one(T))
+    τk₁ = τ[1] * k[1] + (τ[6] * k[2] + τ[5] * k[3])/sqrt(2*one(T))
+    τk₂ = τ[2] * k[2] + (τ[6] * k[1] + τ[4] * k[3])/sqrt(2*one(T))
+    τk₃ = τ[3] * k[3] + (τ[5] * k[1] + τ[4] * k[2])/sqrt(2*one(T))
     nτn = (k[1] * τk₁ + k[2] * τk₂ + k[3] * τk₃) / sum(abs2, k)
     const1 = nτn / (1 - hooke.ν)
     const2 = 1 / (2 * hooke.μ * sum(abs2, k))
