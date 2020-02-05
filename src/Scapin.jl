@@ -9,6 +9,7 @@ struct Hooke{T, DIM}
 end
 
 size(::Hooke{T, 2}) where T = (3, 3)
+size(::Hooke{T, 3}) where T = (6, 6)
 
 function block_apply!(out, hooke::Hooke{T, 2}, k, τ) where {T}
     τk₁ = τ[1]*k[1]+τ[3]*k[2] / sqrt(2)
@@ -20,6 +21,23 @@ function block_apply!(out, hooke::Hooke{T, 2}, k, τ) where {T}
     out[2] = const2*(k[2]*(2*τk₂-const1*k[2]))
     const3 = sqrt(2)*const2
     out[3] = const3*(k[1]*τk₂+k[2]*τk₁-const1*k[1]*k[2])
+    return out
+end
+
+function block_apply!(out, hooke::Hooke{T, 3}, k, τ) where T
+    τk₁ = τ[1] * k[1] + (τ[6] * k[2] + τ[5] * k[3])/sqrt(2one(T))
+    τk₂ = τ[2] * k[2] + (τ[6] * k[1] + τ[4] * k[3])/sqrt(2one(T))
+    τk₃ = τ[3] * k[3] + (τ[5] * k[1] + τ[4] * k[2])/sqrt(2one(T))
+    nτn = (k[1] * τk₁ + k[2] * τk₂ + k[3] * τk₃) / sum(abs2, k)
+    const1 = nτn / (1 - hooke.ν)
+    const2 = 1 / (2 * hooke.μ * sum(abs2, k))
+    out[1] = const2 * (k[1] * (2 * τk₁ - const1 * k[1]))
+    out[2] = const2 * (k[2] * (2 * τk₂ - const1 * k[2]))
+    out[3] = const2 * (k[3] * (2 * τk₃ - const1 * k[3]))
+    const3 = sqrt(2one(T)) * const2
+    out[4] = const3 * (k[2] * τk₃ + k[3] * τk₂ - const1 * k[2] * k[3])
+    out[5] = const3 * (k[3] * τk₁ + k[1] * τk₃ - const1 * k[3] * k[1])
+    out[6] = const3 * (k[1] * τk₂ + k[2] * τk₁ - const1 * k[1] * k[2])
     return out
 end
 
@@ -86,6 +104,21 @@ end
             exp = block_matrix_ref(hooke, k)
 
             @test all(isapprox.(act, exp, atol=1e-15))
+        end
+    end
+end
+
+@testset "Green operator for 3D linear elasticity" begin
+    hooke = Hooke{Float64, 3}(5.6, 0.3)
+    for k_norm ∈ [0.12, 2.3, 14.5]
+        for φ ∈ LinRange(0., 2*π, 21)[1:end-1]
+            for θ ∈ LinRange(0., π, 11)
+                k = k_norm*(@SVector [sin(θ)*cos(φ), sin(θ)*sin(φ), cos(θ)])
+                act = block_matrix(hooke, k)
+                exp = block_matrix_ref(hooke, k)
+
+                @test all(isapprox.(act, exp, atol=1e-15))
+            end
         end
     end
 end
