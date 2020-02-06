@@ -62,6 +62,8 @@
 \newcommand{\stresses}{\mathcal S}
 \newcommand{\strains}{\mathcal E}
 
+\newcommand{\todo}[1]{\color{red}TODO~---~#1\color{black}}
+
 \begin{document}
 \maketitle
 
@@ -110,6 +112,7 @@ When no confusion is possible, we will use the tilde to denote the Fourier
 coefficients: \(\tilde{\tens T}_n=\mathcal F(\tens T)(\vec k_n)\).
 
 \section{Continuous Green operators}
+\label{sec:202002060528}
 
 \subsection{Conductivity}
 
@@ -326,6 +329,21 @@ itself, we use Eq.~\eqref{eq:25}.
 
 \subsection{Hyperelasticity}
 
+\section{Discrete Green operators}
+
+In this section, we introduce various discretizations of the Green operator~;
+we will adopt the vocabulary of linear elasticity, ,although the concepts apply
+to all the types of physics presented in Sec.~\ref{sec:sec:202002060528}. We
+first define the grid that defines the simulation. The unit-cell
+\((0, L_1)\times\cdots\times(0, L_d)\) is divided in a regular grid of size
+\(N_1\times\cdot\times N_d\). We consider discrete stress-polarizations
+\(\tens\tau^h\) that are constant over each cell of the grid~; \(\tens\tau_n\)
+denotes the constant value of \(\tens\tau^h\) in cell \(\Omega_n\) \todo{define
+  this cell}. We want to approximate the true value of
+\(\tens\Gamma_0(\tens\tau^h)\) as follows
+\begin{equation}
+  \tens\Gamma_0
+\end{equation}
 \printbibliography
 
 \end{document}
