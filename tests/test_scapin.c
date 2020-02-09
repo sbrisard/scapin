@@ -2,7 +2,7 @@
 
 #include <glib.h>
 
-#include "scapin.h"
+#include <scapin/scapin.h>
 
 #include <stdio.h>
 
