@@ -55,6 +55,24 @@ function block_matrix(op::Hooke{T,DIM}, k::SVector{DIM,T}) where {T,DIM}
     mat
 end
 
+struct TruncatedGreenOperator{T, DIM}
+    Γ::Hooke{T, DIM}
+    grid_size::SVector{DIM, Int}
+    grid_dim::SVector{DIM, T}
+    k::AbstractArray{AbstractArray{T, 1}, 1}
+    function TruncatedGreenOperator(Γ::Hooke{T, DIM},
+                                    grid_size::SVector{DIM, Int},
+                                    grid_dim::SVector{DIM, T}) where {T, DIM}
+        k = [fftfreq(grid_size[i], 2π*grid_size[i]/grid_dim[i]) for i in 1:DIM]
+        new(Γ, grid_size, grid_dim, k)
+    end
+end
+
+function apply!(out, Γ_h::TruncatedGreenOperator{T, DIM}, i, τ)
+    block_apply!(out, Γ_h.Γ, Γ_h.k[i], τ)
+    return τ
+end
+
 # ==================== TESTS ====================
 
 using LinearAlgebra
