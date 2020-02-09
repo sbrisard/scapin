@@ -68,7 +68,7 @@ struct TruncatedGreenOperator{T, DIM}
     end
 end
 
-function apply!(out, Γ_h::TruncatedGreenOperator{T, DIM}, i, τ)
+function apply!(out, Γ_h::TruncatedGreenOperator{T, DIM}, i, τ) where {T, DIM}
     block_apply!(out, Γ_h.Γ, Γ_h.k[i], τ)
     return τ
 end
