@@ -1,6 +1,10 @@
 find_library(MATH_LIBRARY m)
 
-add_library(scapin SHARED scapin.c ../include/scapin/scapin.h)
+add_library(scapin SHARED
+  scapin.c
+  ../include/scapin/scapin.h
+  fft_helper.c
+  ../include/scapin/fft_helper.h)
 
 target_include_directories(scapin PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}../include>
