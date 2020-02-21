@@ -26,19 +26,21 @@
 \setmainfont{XITS}
 \setmathfont{XITS Math}
 
-\usepackage[breaklinks=true,colorlinks=true,linktocpage=true, pdfauthor={Sébastien Brisard}, pdfsubject={},pdftitle={Gollum},unicode=true,urlcolor=blue]{hyperref}
+\usepackage[breaklinks=true,colorlinks=true,linktocpage=true, pdfauthor={Sébastien Brisard}, pdfsubject={},pdftitle={Scapin},unicode=true,urlcolor=blue]{hyperref}
 
 \usepackage[notref, notcite]{showkeys}
 \renewcommand{\showkeyslabelformat}[1]{\color{red}\normalfont\scriptsize\ttfamily#1}
 
 \usepackage{stmaryrd}
 
+\DeclareMathOperator{\conj}{conj}
 \DeclareMathOperator{\curl}{\textbf{rot}}
 \newcommand{\D}{{\mathrm d}}
 \newcommand{\dbldot}{\mathbin{\mathord{:}}}
 \newcommand{\I}{\mathrm{i}}
 \newcommand{\integers}{\mathbb{Z}}
 \newcommand{\integrable}{\mathrm{L}^2}
+\newcommand{\naturals}{\mathbb N}
 \newcommand{\reals}{\mathbb{R}}
 \newcommand{\symgrad}{\tens\epsilon}
 \newcommand{\tr}{\operatorname{tr}}
@@ -58,16 +60,18 @@
 
   \newcommand{\PI}{\symup{\pi}}
 }
+\DeclareMathOperator{\sinc}{sinc}
 \newcommand{\tensors}{\mathcal T}
 \newcommand{\stresses}{\mathcal S}
 \newcommand{\strains}{\mathcal E}
-
 \newcommand{\todo}[1]{\color{red}TODO~---~#1\color{black}}
+\newcommand{\tuple}[1]{[#1]}
 
 \begin{document}
 \maketitle
 
-\chapter{Theory}
+\chapter{Continuous Green operators}
+\label{chap:202002060528}
 
 In this chapter, we discuss various boundary-value problems in a periodic
 setting. The \(d\)-dimensional periodic cell \(\Omega\subset\reals^d\) has
@@ -111,12 +115,9 @@ It is recalled that the Fourier coefficients of the gradient and divergence of
 When no confusion is possible, we will use the tilde to denote the Fourier
 coefficients: \(\tilde{\tens T}_n=\mathcal F(\tens T)(\vec k_n)\).
 
-\section{Continuous Green operators}
-\label{sec:202002060528}
+\section{Conductivity}
 
-\subsection{Conductivity}
-
-\subsection{Elasticity}
+\section{Elasticity}
 
 We first define a few functional spaces; \(\tensors_2(\Omega)\) denotes the
 space of second-order, symmetric, tensor fields, with square-integrable
@@ -327,23 +328,154 @@ e.g.][]{suqu1990}. Implementation of Eq.~\eqref{eq:26} is cumbersome; it is
 only used for testing purposes. For the implementation of the Green operator
 itself, we use Eq.~\eqref{eq:25}.
 
-\subsection{Hyperelasticity}
+\section{Hyperelasticity}
 
-\section{Discrete Green operators}
+\chapter{Discrete Green operators}
 
-In this section, we introduce various discretizations of the Green operator~;
+In this chapter, we introduce various discretizations of the Green operator~;
 we will adopt the vocabulary of linear elasticity, ,although the concepts apply
-to all the types of physics presented in Sec.~\ref{sec:sec:202002060528}. We
-first define the grid that defines the simulation. The unit-cell
-\((0, L_1)\times\cdots\times(0, L_d)\) is divided in a regular grid of size
-\(N_1\times\cdot\times N_d\). We consider discrete stress-polarizations
-\(\tens\tau^h\) that are constant over each cell of the grid~; \(\tens\tau_n\)
-denotes the constant value of \(\tens\tau^h\) in cell \(\Omega_n\) \todo{define
-  this cell}. We want to approximate the true value of
-\(\tens\Gamma_0(\tens\tau^h)\) as follows
+to all the types of physics presented in Chapter~\ref{chap:202002060528}.
+
+We first define the grid that defines the simulation. The unit-cell
+\(\Omega=(0, L_1)\times\cdots\times(0, L_d)\) is divided in a regular grid of
+size \(N_1\times\cdots\times N_d\). The cells of this grid are
 \begin{equation}
-  \tens\Gamma_0
+  \Omega_{\tuple{p}}=\{p_ih_i\leq x_i<\bigl(p_i+1\bigr)h_i, i=1,\ldots, d\},
 \end{equation}
+where \(\tuple{p}\) denotes a \(d\)-tuple of integers,
+\(\tuple{p}=\bigl(p_1,\ldots,p_d\bigr)\) such that \(0\leq p_i<N_i\),
+\(i=1,\ldots, d\) and \(h_i=L_i/N_i\) is the cell-size in the \(i\)-th
+direction. Note that in the above definition of \(\Omega_p\), no summation is
+performed on the repeated index \(i\). The total number of cells is
+\(N=N_1\cdots N_d\).
+
+We consider discrete stress-polarizations \(\tens\tau^h\) that are constant
+over each cell of the grid: \(\tens\tau_{\tuple{p}}^h\) denotes the constant
+value of \(\tens\tau^h\) in cell \(\Omega_{\tuple{p}}\). The \(h\) superscript
+reminds that \(\tens\tau^h\) is a discrete approximation of the true
+stress-polarization. In order to solve the Lippmann--Schwinger equation, we
+need to evaluate \(\tens\Gamma(\tens\tau^h)\). Since \(\tens\tau^h\) is
+cell-wise constant, its Fourier coefficients can be computed explicitly, and
+exact evaluation of \(\tens\Gamma(\tens\tau^h)\) can be performed formally
+\parencite{bris2010a,bris2012a} as follows
+\begin{equation}
+  \label{eq:20202118112132}
+  \langle\tens\varpi^h\dbldot\tens\Gamma(\tens\tau^h)\rangle=\frac1{N^2}
+  \sum_{n_1=0}^{N_1-1}\cdots\sum_{n_d=0}^{N_d-1}\conj(\hat{\tens\varpi}_
+  {\tuple{n}}^h)\dbldot\hat{\tens\Gamma}_n^{h, \mathrm{c}}\dbldot
+  \hat{\tens\tau}_{\tuple{n}}^h,
+\end{equation}
+where \(\hat{\tens\tau}_{\tuple{n}}^h\) denote the discrete Fourier transform
+of the \(\tens\tau_{\tuple{p}}^h\)
+\begin{equation}
+  \hat{\tens\tau}_{\tuple{n}}^h=\sum_{p_1=0}^{N_1-1}\cdots\sum_{p_d=0}^{N_d-1}\exp\Bigl[
+  -2i\pi\Bigl(\frac{p_1n_1}{N_1}+\cdots\frac{p_dn_d}{N_d}\Bigr)\Bigr]
+  \hat{\tens\tau}_{\tuple{p}}^h
+\end{equation}
+and \(\hat{\tens\Gamma}_{\tuple{n}}^{h, \mathrm{c}}\) is the \emph{consistent}
+discretization of the Green operator
+\begin{equation}
+  \label{eq:20202218112204}
+  \hat{\tens\Gamma}_{\tuple{n}}^{h, \mathrm{c}}=\sum_{m\in\integers^d}\bigl[F(\vec
+  \alpha_{\tuple{n+mN}})\bigr]^2\hat{\tens\Gamma}(\vec k_{\tuple{n+mN}}),
+\end{equation}
+where \(\tuple{n+mN}\) denotes the following \(d\)-tuple
+\begin{equation}
+  \tuple{n+mN}=\bigl(n_1+m_1N_1, \ldots, n_d+m_dN_d\bigr),
+\end{equation}
+while \(\alpha_{\tuple{n}}\) is the following dimensionless vector
+\begin{equation}
+  \vec\alpha_{\tuple{n}}=\frac{2\pi h_1n_1}{L_1}\vec e_1+\cdots+\frac{2\pi h_dn_d}{L_d}\vec e_d.
+\end{equation}
+Finally, \(F\) is the tensor product of sine cardinal functions
+\begin{equation}
+  F(\vec\alpha)=\sinc\frac{\alpha_1}2\cdots\sinc\frac{\alpha_d}2.
+\end{equation}
+
+Eq.~\eqref{eq:20202118112132} is not practical, as the infinite
+series~\eqref{eq:20202218112204} can in general not be evaluated. However, it
+shows that \(\tens\Gamma(\tens\tau^h)\) could in principle be computed very
+efficiently in Fourier space as follows
+\begin{enumerate}
+\item\label{item:20202818112815} compute the discrete Fourier transform
+  \(\hat{\tens\tau}_{\tuple{n}}^h\) of the cell-values \(\tens\tau_{\tuple{p}}^h\),
+\item for each discrete frequency, compute
+  \(\hat{\tens\eta}_{\tuple{n}}^h=\hat{\tens\Gamma}_{\tuple{n}}^{h,\mathrm{c}}\dbldot\hat{\tens\tau}_{\tuple{n}}^h\),
+\item\label{item:20202818112832} compute the inverse discrete Fourier transform
+  \(\tens\eta_{\tuple{p}}^h\) of \(\hat{\tens\eta}_{\tuple{n}}^h\),
+\end{enumerate}
+discrete Fourier transforms being computed in steps~\ref{item:20202818112815}
+and \ref{item:20202818112832} by means of the FFT. In the remainder of this
+section, we propose various alternate discretizations that \emph{are}
+computable, while preserving the above nice (block-circulant) structure.
+
+It is important to note that, regardless of the exact definition of the discrete Green operator \(\hat{\tens\Gamma}_{\tuple{n}}^h\),  \(\tens\eta_{\tuple{p}}^h\) must be \emph{real}.
+
+\section{The \texttt{fftfreq} function}
+
+For \(n, N\in\naturals\), \(0\leq n<N\), we introduce \(Z(n, N)\)
+\begin{equation}
+  Z(n, N)=
+  \begin{cases}
+    n & \text{if }2n<N,\\
+    n-N & \text{otherwise.}
+  \end{cases}
+\end{equation}
+For \(n<0\) or \(n\geq N\), \(Z(n, N)\) is defined by
+\(N\)-periodicity. \(Z\) is very similar to the
+\texttt{numpy.fft.fftfreq} function. Then
+\begin{equation}
+  Z(N-n, N)=
+  \begin{cases}
+    Z(n) & \text{if }2n=N,\\
+    -Z(n) & \text{otherwise.}
+  \end{cases}
+\end{equation}
+Indeed
+\begin{enumerate}
+\item If \(n=0\), then \(Z(N-n, N)=Z(N, N)=Z(0, N)=0=-Z(n, N)\).
+\item If \(N\) is even, \(N=2M\)
+  \begin{enumerate}
+  \item If \(0<n<M\)
+    \begin{gather*}
+      2n<N\quad\Rightarrow\quad Z(n, N)=n,\\
+      M<N-n\quad\Rightarrow\quad N<2\bigl(N-n\bigr)\quad\Rightarrow\quad Z(N-n, N)=N-n-N=-n.
+    \end{gather*}
+  \item If \(n=M\)
+    \begin{gather*}
+      2n=N\quad\Rightarrow\quad Z(n, N)=n-N=-M,\\
+      2(N-n)=2M=N\quad\Rightarrow\quad Z(N-n, N)=-M.
+    \end{gather*}
+  \item If \(M<n<N\)
+    \begin{gather*}
+      N<2n\quad\Rightarrow\quad Z(n, N)=n-N,\\
+     N-n<M\quad\Rightarrow\quad 2\bigl(N-n\bigr)<N\quad\Rightarrow\quad Z(N-n, N)=N-n.
+    \end{gather*}
+  \end{enumerate}
+\item If \(N\) is odd, \(N=2M+1\)
+  \begin{enumerate}
+  \item If \(0<n\leq M\)
+    \begin{gather*}
+      2n\leq 2M<N\quad\Rightarrow\quad Z(n, N)=n,\\
+      M+1\leq N-n\quad\Rightarrow\quad N<2\bigl(N-n\bigr)\quad\Rightarrow\quad Z(N-n, N)=N-n-N=-n.
+    \end{gather*}
+  \item If \(M+1\leq n<N\)
+    \begin{gather*}
+      N+1\leq 2n\quad\Rightarrow\quad Z(n, N)=n-N\\
+      N-n\leq N-M-1=M\quad\Rightarrow\quad 2\bigl(N-n\bigr)\leq 2M<N\quad\Rightarrow\quad Z(N-n, N)=N-n
+    \end{gather*}
+  \end{enumerate}
+\end{enumerate}
+
+
+\section{The truncated operator of \textcite{moul1998}}
+
+\begin{equation}
+  \hat{\tens\Gamma}_{\tuple{n}}^{h, \mathrm{MS98}}=\hat{\tens\Gamma}(\vec k_{\tuple{m}}),\quad\text{with}\quad
+  m_i=Z(n_i, N_i),\quad i=1,\ldots, d.
+\end{equation}
+
+
 \printbibliography
 
 \end{document}
