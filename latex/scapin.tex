@@ -33,6 +33,7 @@
 
 \usepackage{stmaryrd}
 
+\newcommand{\cellindices}{\mathcal P}
 \DeclareMathOperator{\conj}{conj}
 \DeclareMathOperator{\curl}{\textbf{rot}}
 \newcommand{\D}{{\mathrm d}}
@@ -65,7 +66,7 @@
 \newcommand{\stresses}{\mathcal S}
 \newcommand{\strains}{\mathcal E}
 \newcommand{\todo}[1]{\color{red}TODO~---~#1\color{black}}
-\newcommand{\tuple}[1]{[#1]}
+\newcommand{\tuple}[1]{#1_\bullet}
 
 \begin{document}
 \maketitle
@@ -75,12 +76,20 @@
 
 \begin{itemize}
 \item \(d\): dimension of the physical space (typically \(d=2, 3\))
-\item \(\Omega\): the \(d\)-dimensional unit-cell
-\item \(L_1,\ldots, L_d\): the dimensions of the unit-cell:
+\item \(\Omega\): \(d\)-dimensional unit-cell
+\item \(L_1,\ldots, L_d\): dimensions of the unit-cell:
   \(\Omega=(0, L_1)\times(0, L_2)\times\cdots\times(0, L_d)\)
-\item \(\lvert\Omega\rvert=L_1L_2\cdots L_d\): the volume of the unit-cell
+\item \(\lvert\Omega\rvert=L_1L_2\cdots L_d\): volume of the unit-cell
 \item \(\tuple{n}\): \(d\)-dimensional tuple of integers
-  \(\tuple{n}=\bigl(n_1, n_2, \ldots, n_d\bigr)\)
+  \(\tuple{n}=(n_1, n_2, \ldots, n_d)\)
+\item \(\tuple{N}=(N_1, N_2, \ldots, N_d)\): size of the simulation grid
+\item \(\lvert N\rvert=N_1N_2\cdots N_d\): total number of cells
+\item \(h_i=L_i/N_i\): size of the cells (\(i=1, \ldots, d\))
+\item
+  \(\cellindices=\{0, \ldots, N_1-1\}\times\{0, \ldots, N_2-1\}\times\{0,
+  \ldots, N_3-1\}\): set of cell indices
+\item \(\Omega_{\tuple{p}}\): cells of the simulation grid
+  (\(\tuple{p}\in\cellindices\))
 \end{itemize}
 
 \chapter{Continuous Green operators}
@@ -357,12 +366,10 @@ size \(N_1\times\cdots\times N_d\). The cells of this grid are
   \Omega_{\tuple{p}}=\{p_ih_i\leq x_i<\bigl(p_i+1\bigr)h_i, i=1,\ldots, d\},
   \qquad\text{\emph{(no summation on \(i\)).}}
 \end{equation}
-where \(\tuple{p}\) denotes a \(d\)-tuple of integers,
-\(\tuple{p}=\bigl(p_1,\ldots,p_d\bigr)\) such that \(0\leq p_i<N_i\),
-\(i=1,\ldots, d\) and \(h_i=L_i/N_i\) is the cell-size in the \(i\)-th
-direction. Note that in the above definition of \(\Omega_p\), no summation is
-performed on the repeated index \(i\). The total number of cells is
-\(N=N_1\cdots N_d\).
+where \(\tuple{p}=(p_1,\ldots,p_d)\in\cellindices\) denotes a \(d\)-tuple of
+integers, such that \(0\leq p_i<N_i\), \(i=1,\ldots, d\) and \(h_i=L_i/N_i\) is
+the cell-size in the \(i\)-th direction. The total number of cells is
+\(\lvert N\rvert=N_1\cdots N_d\).
 
 We consider discrete stress-polarizations \(\tens\tau^h\) that are constant
 over each cell of the grid: \(\tens\tau_{\tuple{p}}^h\) denotes the constant
