@@ -70,32 +70,44 @@
 \begin{document}
 \maketitle
 
+\chapter{Nomenclature}
+\label{cha:20204224074257}
+
+\begin{itemize}
+\item \(d\): dimension of the physical space (typically \(d=2, 3\))
+\item \(\Omega\): the \(d\)-dimensional unit-cell
+\item \(L_1,\ldots, L_d\): the dimensions of the unit-cell:
+  \(\Omega=(0, L_1)\times(0, L_2)\times\cdots\times(0, L_d)\)
+\item \(\lvert\Omega\rvert=L_1L_2\cdots L_d\): the volume of the unit-cell
+\item \(\tuple{n}\): \(d\)-dimensional tuple of integers
+  \(\tuple{n}=\bigl(n_1, n_2, \ldots, n_d\bigr)\)
+\end{itemize}
+
 \chapter{Continuous Green operators}
 \label{chap:202002060528}
 
 In this chapter, we discuss various boundary-value problems in a periodic
-setting. The \(d\)-dimensional periodic cell \(\Omega\subset\reals^d\) has
-dimensions \(L_1\times L_2\times\cdots L_d\)
-\begin{equation}
-  \label{eq:1}
-  \Omega=(0, L_1)\times(0, L_2)\times\cdots\times(0, L_d)
-\end{equation}
-and \(V=L_1L_2\cdots L_d\) denotes its (\(d\)-dimensional) volume.
+setting. For each of these problems, we introduce the associated \emph{Green
+  operator}.
 
-Owing to the periodic setting, the fields that are involved in these various
-BVPs will be expanded in Fourier series. \(\tens T\) being a
-\(\Omega\)-periodic tensor field
+\section{On Fourier series}
+
+Owing to the periodic setting, the fields that are involved in the various BVPs
+to be discussed in this chapter are expanded in Fourier series. \(\tens T\)
+being a \(\Omega\)-periodic tensor field
 \begin{equation}
-  \label{eq:2}
-  \tens T(\vec x)=\sum_{n\in\integers^d}\mathcal F(\tens T)(\vec k_n)\exp(\I
-  \vec k_n\cdot\vec x),
+  \tens T(\vec x)=\sum_{\tuple{n}\in\integers^d}\mathcal F(\tens T)(\vec
+  k_{\tuple{n}})\exp(\I\vec k_{\tuple{n}}\cdot\vec x),
 \end{equation}
-where the wave vectors \(\vec k_n\) are given by
+where \(\tuple{n}\) denotes a \(d\)-dimensional tuple of integers (see
+chapter~\ref{cha:20204224074257}). The wave vectors \(\vec k_{\tuple{n}}\) are
+given by
 \begin{equation}
   \label{eq:3}
-  \vec k_n=\sum_{i=1}^d\frac{2\pi n_i}{L_i}\vec e_i,
+  \vec k_{\tuple{n}}=\frac{2\pi n_1}{L_1}\vec e_1+\frac{2\pi n_2}{L_2}\vec e_2+
+  \cdots+\frac{2\pi n_d}{L_d}\vec e_d,
 \end{equation}
-while the Fourier coefficients are defined as follows
+and the Fourier coefficients of \(\tens T\) are defined as follows
 \begin{equation}
   \label{eq:5}
   \mathcal F(\tens T)(\vec k)=\frac1V\int_{\vec x\in\Omega}\tens T(\vec x)
@@ -333,14 +345,17 @@ itself, we use Eq.~\eqref{eq:25}.
 \chapter{Discrete Green operators}
 
 In this chapter, we introduce various discretizations of the Green operator~;
-we will adopt the vocabulary of linear elasticity, ,although the concepts apply
+we will adopt the vocabulary of linear elasticity, although the concepts apply
 to all the types of physics presented in Chapter~\ref{chap:202002060528}.
+
+\section{The simulation grid}
 
 We first define the grid that defines the simulation. The unit-cell
 \(\Omega=(0, L_1)\times\cdots\times(0, L_d)\) is divided in a regular grid of
 size \(N_1\times\cdots\times N_d\). The cells of this grid are
 \begin{equation}
   \Omega_{\tuple{p}}=\{p_ih_i\leq x_i<\bigl(p_i+1\bigr)h_i, i=1,\ldots, d\},
+  \qquad\text{\emph{(no summation on \(i\)).}}
 \end{equation}
 where \(\tuple{p}\) denotes a \(d\)-tuple of integers,
 \(\tuple{p}=\bigl(p_1,\ldots,p_d\bigr)\) such that \(0\leq p_i<N_i\),
