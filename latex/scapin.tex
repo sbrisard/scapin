@@ -38,6 +38,7 @@
 \DeclareMathOperator{\curl}{\textbf{rot}}
 \newcommand{\D}{{\mathrm d}}
 \newcommand{\dbldot}{\mathbin{\mathord{:}}}
+\DeclareMathOperator{\dft}{DFT}
 \newcommand{\I}{\mathrm{i}}
 \newcommand{\integers}{\mathbb{Z}}
 \newcommand{\integrable}{\mathrm{L}^2}
@@ -66,7 +67,7 @@
 \newcommand{\stresses}{\mathcal S}
 \newcommand{\strains}{\mathcal E}
 \newcommand{\todo}[1]{\color{red}TODO~---~#1\color{black}}
-\newcommand{\tuple}[1]{#1_\bullet}
+\newcommand{\tuple}[1]{\mathsf{#1}}
 
 \begin{document}
 \maketitle
@@ -356,6 +357,45 @@ itself, we use Eq.~\eqref{eq:25}.
 In this chapter, we introduce various discretizations of the Green operator~;
 we will adopt the vocabulary of linear elasticity, although the concepts apply
 to all the types of physics presented in Chapter~\ref{chap:202002060528}.
+
+\section{On the discrete Fourier transform}
+
+Let \(x=(x_{\tuple{p}})\) be a finite set of scalar values indexed by the
+\(d\)-tuple \(\tuple{p}=(p_1, \ldots, p_d)\) where \(0\leq p_i<N_i\) (\(N_i\)
+is the number of data points in the \(i\)-th direction). The discrete Fourier
+transform is a discrete set of scalar values \(\dft_{\tuple{n}}(x)\)
+indexed by the \(d\)-tuple \(\tuple{n}\in\integers^d\), defined as follows
+\begin{equation}
+  \dft_{\tuple{n}}(x)=\sum_{p_1=0}^{N_1-1}\cdots\sum_{p_d=0}^{N_d-1}\exp
+  \Bigl[-2\I\PI\Bigl(\frac{n_1p_1}{N_1}+\cdots+\frac{n_dp_d}{N_d}\Bigr)\Bigr]
+  x_{\tuple{p}}.
+\end{equation}
+
+Note that in the above definition, no restrictions are applied to the
+multi-index \(\tuple{n}\). However, it can be verified that the above series of
+tensors is in fact \(\tuple{N}\)-periodic:
+\(\dft_{\tuple{n}+\tuple{N}}(x)=\dft_{\tuple{n}}(x)\), where
+\(\tuple{n}+\tuple{N}=(n_1+N_1, \ldots, n_d+N_d)\). Therefore, the
+\(\tuple{n}\)-index is effectively restricted to \(0\leq n_i<N_i\) as well. The
+most important results concerning the DFT are the \emph{inversion formula}
+\begin{equation}
+  x_{\tuple{p}}=\frac1{\lvert\tuple{N}\rvert}\sum_{n_1=0}^{N_1-1}\cdots
+  \sum_{n_d=0}^{N_d-1}\exp\Bigl[2\I\PI\Bigl(\frac{n_1p_1}{N_1}+\cdots+
+  \frac{n_dp_d}{N_d}\Bigr)\Bigr]\dft_{\tuple{n}}(x)
+\end{equation}
+and the circular convolution theorem, which states that
+\begin{equation}
+  \dft_{\tuple{n}}(x\ast y)=\dft_{\tuple{n}}(x)\dft_{\tuple{n}}(y),
+\end{equation}
+where \(z=x\ast y\) denotes the convolution product
+\begin{equation}
+  (x\ast y)_{\tuple p}=\sum_{q_1=0}^{N_1-1}\cdots\sum_{q_d=0}^{N_d-1}
+  x_{\tuple{q}}y_{\tuple{p}-\tuple{q}}.
+\end{equation}
+
+The DFT is readily extended to tensor data points. In the absence of ambiguity,
+the shorthand \(\hat{x}_{\tuple{n}}\) will be adopted for
+\(\dft_{\tuple{n}}(x)\).
 
 \section{The simulation grid}
 
