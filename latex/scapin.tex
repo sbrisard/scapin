@@ -397,6 +397,15 @@ The DFT is readily extended to tensor data points. In the absence of ambiguity,
 the shorthand \(\hat{x}_{\tuple{n}}\) will be adopted for
 \(\dft_{\tuple{n}}(x)\).
 
+To close this section, we observe that the DFT of a series of \emph{real} data
+points is a series of \emph{complex} data points. However, these complex values
+have the following property
+\begin{equation}
+  \dft_{\tuple{N}-\tuple{n}}(x)=\conj\dft_{\tuple{n}}(x).
+\end{equation}
+The above condition is actually a \emph{necessary and sufficient} condition for
+the \(x_{\tuple{p}}\) to be real.
+
 \section{The simulation grid}
 
 We first define the grid that defines the simulation. The unit-cell
