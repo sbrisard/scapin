@@ -462,33 +462,58 @@ The continuous Green operator is translation invariant, and this property will
 of course be transferred to the ``exact'' discrete Green operator~; we will in
 fact require \emph{all} dicretizations of the Green operator to have this
 property. In other words,
-\(\tens\Gamma_{\tuple{p}\tuple{q}}^{\tuple{h}}=\tens\Gamma_{\tuple{q}-\tuple{p}}^{\tuple{h}}\)
+\(\tens\Gamma_{\tuple{p}\tuple{q}}^{\tuple{h}}=\tens\Gamma_{\tuple p-\tuple q}^{\tuple{h}}\)
 and Eq.~\eqref{eq:20204027054030} reads
 \begin{equation}
   \langle\tens\varpi^{\tuple{h}}\dbldot\tens\Gamma(\tens\tau^{\tuple{h}})\rangle
   \simeq\frac1{\lvert\tuple{N}\rvert}\sum_{\tuple{p}, \tuple{q}\in\cellindices}
   \tens\varpi_{\tuple{p}}^{\tuple{h}}\dbldot
-  \tens\Gamma_{\tuple{q}-\tuple{p}}^{\tuple{h}}\dbldot\tens
+  \tens\Gamma_{\tuple p-\tuple q}^{\tuple{h}}\dbldot\tens
   \tau_{\tuple{q}}^{\tuple{h}}\quad\text{for all }\tens\tau^{\tuple{h}},\tens
   \varpi^{\tuple{h}}\in\tensors_2^{\tuple{h}}(\Omega).
 \end{equation}
 
-Introducing the DFT of all the above quantities (note that
-\(\tens\Gamma_{\tuple{p}}^{\tuple{h}}\) is now indexed by \emph{one} index
-only, and its DFT is unambiguous)
+Note that \(\tens\Gamma_{\tuple{p}}^{\tuple{h}}\) is now indexed by \emph{one}
+index only and its DFT can be introduced unambiguously
 
 \begin{equation}
+  \label{eq:20201527081546}
   \begin{aligned}[b]
-    \frac{1}{\lvert\tuple N\rvert}\sum_{\tuple{p}, \tuple{q}\in\cellindices}
-    \tens\varpi_{\tuple{p}}^{\tuple{h}}\dbldot\tens\Gamma_{\tuple{q}-\tuple{p}}^{\tuple{h}}
-    \dbldot\tens\tau_{\tuple{q}}^{\tuple{h}}=\frac{1}{\lvert\tuple N\rvert^2}
-    \sum_{\tuple{p}, \tuple{q}, \tuple{n}\in\cellindices}
-    \tens\varpi_{\tuple{p}}^{\tuple{h}}\dbldot\tens\Gamma_{\tuple{q}-\tuple{p}}^{\tuple{h}}
-    \dbldot\hat{\tens\tau}_{\tuple{n}}^{\tuple{h}}\exp\Bigl(2\I\PI\sum_{j=1}^d
-    \frac{n_jq_j}{N_j}\Bigr)
+    &\frac{1}{\lvert\tuple N\rvert}\sum_{\tuple{p}, \tuple{q}\in\cellindices}
+    \tens\varpi_{\tuple{p}}^{\tuple{h}}\dbldot\tens\Gamma_{\tuple p-\tuple q}^{\tuple h}
+    \dbldot\tens\tau_{\tuple{q}}^{\tuple{h}}\\
+    ={}&\frac1{\lvert\tuple N\rvert^2}\sum_{\tuple p, \tuple q, \tuple n\in\cellindices}
+    \exp\Bigl[2\I\PI\sum_{j=1}^d\frac{n_j}{N_j}\bigl(p_j-q_j\bigr)\Bigr]
+    \tens\varpi_{\tuple{p}}^{\tuple{h}}\dbldot\hat{\tens\Gamma}_{\tuple n}^{\tuple h}
+    \dbldot\tens\tau_{\tuple q}^{\tuple h}\\
+    ={}&\frac{1}{\lvert\tuple N\rvert^2}
+    \sum_{\tuple n\in\cellindices}\Bigl\{\Bigl[\sum_{\tuple{p}\in\cellindices}
+    \exp\Bigl(2\I\PI\sum_{j=1}^d\frac{n_jp_j}{N_j}\Bigr)
+    \tens\varpi_{\tuple p}^{\tuple h}\Bigr]\dbldot\hat{\tens\Gamma}_{\tuple n}^{\tuple h}
+    \dbldot\Bigl[\sum_{\tuple q\in\cellindices}\exp\Bigl(-2\I\PI\sum_{j=1}^d
+    \frac{n_jq_j}{N_j}\tens\tau_{\tuple q}^{\tuple{h}}\Bigr)\Bigr]\Bigr\}.
   \end{aligned}
 \end{equation}
 
+Since \(\tens\varpi\) is real, we have
+\(\conj\tens\varpi_{\tuple p}^h=\tens\varpi_{\tuple p}^h\) and the first sum in
+square brackets in Eq.~\eqref{eq:20201527081546} reads
+\begin{equation}
+  \sum_{\tuple{p}\in\cellindices}\exp\Bigl(2\I\PI\sum_{j=1}^d\frac{n_jp_j}{N_j}\Bigr)
+  \tens\varpi_{\tuple p}^{\tuple h}&=\conj\sum_{\tuple{p}\in\cellindices}\exp
+  \Bigl(-2\I\PI\sum_{j=1}^d\frac{n_jp_j}{N_j}\Bigr)\tens\varpi_{\tuple p}^{\tuple h}
+  =\conj\hat{\tens\varpi}_{\tuple n}^{\tuple h},
+\end{equation}
+while the second sum in square brackets reduces to
+\(\hat{\tens\tau}_{\tuple n}^{\tuple h}\). Gathering the above results, we find
+\begin{equation}
+  \frac{1}{\lvert\tuple N\rvert}\sum_{\tuple p, \tuple q\in\cellindices}
+  \tens\varpi_{\tuple p}^{\tuple h}\dbldot\tens\Gamma_{\tuple p-\tuple q}^{\tuple h}
+  \dbldot\tens\tau_{\tuple q}^{\tuple h}=\frac1{\lvert\tuple N\rvert^2}
+  \sum_{\tuple n\in\cellindices}\conj\hat{\tens\varpi}_{\tuple n}^{\tuple h}
+  \dbldot\hat{\tens\Gamma}_{\tuple n}^{\tuple h}\dbldot
+  \hat{\tens\tau}_{\tuple n}^{\tuple h}.
+\end{equation}
 
 In order to solve the Lippmann--Schwinger equation, we
 need to evaluate \(\tens\Gamma(\tens\tau^h)\). Since \(\tens\tau^h\) is
