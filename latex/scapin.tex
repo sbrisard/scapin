@@ -388,7 +388,7 @@ the \emph{Plancherel theorem}
   \label{eq:20203128093105}
   \sum_{p_1=1}^{N_1-1}\cdots\sum_{p_d=1}^{N_d-1}\conj(x_{\tuple p})y_{\tuple p}
   =\frac1{\lvert\tuple N\rvert}\sum_{n_1=1}^{N_1-1}\cdots\sum_{n_d=1}^{N_d-1}
-  \conj(\dft_{\tuple n}(x))\dft_{\tuple n}(y),
+  \conj[\dft_{\tuple n}(x)]\dft_{\tuple n}(y),
 \end{equation}
 and the \emph{circular convolution theorem}
 \begin{equation}
@@ -406,7 +406,7 @@ To close this section, we observe that the DFT of a series of \emph{real} data
 points is a series of \emph{complex} data points. However, these complex values
 have the following property
 \begin{equation}
-  \dft_{\tuple{N}-\tuple{n}}(x)=\conj\dft_{\tuple{n}}(x).
+  \dft_{\tuple{N}-\tuple{n}}(x)=\conj[\dft_{\tuple{n}}(x)].
 \end{equation}
 The above condition is actually a \emph{necessary and sufficient} condition for
 the \(x_{\tuple{p}}\) to be real.
@@ -501,13 +501,14 @@ index only and its DFT can be introduced unambiguously
 \end{equation}
 
 Since \(\tens\varpi\) is real, we have
-\(\conj\tens\varpi_{\tuple p}^h=\tens\varpi_{\tuple p}^h\) and the first sum in
+\(\conj(\tens\varpi_{\tuple p}^h)=\tens\varpi_{\tuple p}^h\) and the first sum in
 square brackets in Eq.~\eqref{eq:20201527081546} reads
 \begin{equation}
   \sum_{\tuple{p}\in\cellindices}\exp\Bigl(2\I\PI\sum_{j=1}^d\frac{n_jp_j}{N_j}\Bigr)
-  \tens\varpi_{\tuple p}^{\tuple h}=\conj\sum_{\tuple{p}\in\cellindices}\exp
-  \Bigl(-2\I\PI\sum_{j=1}^d\frac{n_jp_j}{N_j}\Bigr)\tens\varpi_{\tuple p}^{\tuple h}
-  =\conj\hat{\tens\varpi}_{\tuple n}^{\tuple h},
+  \tens\varpi_{\tuple p}^{\tuple h}=\conj\Bigl[\sum_{\tuple{p}\in\cellindices}
+  \exp\Bigl(-2\I\PI\sum_{j=1}^d\frac{n_jp_j}{N_j}\Bigr)
+  \tens\varpi_{\tuple p}^{\tuple h}\Bigr]
+  =\conj(\hat{\tens\varpi}_{\tuple n}^{\tuple h}),
 \end{equation}
 while the second sum in square brackets reduces to
 \(\hat{\tens\tau}_{\tuple n}^{\tuple h}\). Gathering the above results, we find
@@ -515,7 +516,7 @@ while the second sum in square brackets reduces to
   \frac{1}{\lvert\tuple N\rvert}\sum_{\tuple p, \tuple q\in\cellindices}
   \tens\varpi_{\tuple p}^{\tuple h}\dbldot\tens\Gamma_{\tuple p-\tuple q}^{\tuple h}
   \dbldot\tens\tau_{\tuple q}^{\tuple h}=\frac1{\lvert\tuple N\rvert^2}
-  \sum_{\tuple n\in\cellindices}\conj\hat{\tens\varpi}_{\tuple n}^{\tuple h}
+  \sum_{\tuple n\in\cellindices}\conj(\hat{\tens\varpi}_{\tuple n}^{\tuple h})
   \dbldot\hat{\tens\Gamma}_{\tuple n}^{\tuple h}\dbldot
   \hat{\tens\tau}_{\tuple n}^{\tuple h}.
 \end{equation}
@@ -535,10 +536,10 @@ a linear operator that maps the cell-wise constant field
 Then, from the Plancherel theorem
 \begin{equation}
   \frac1{\lvert\tuple N\rvert^2}
-  \sum_{\tuple n\in\cellindices}\conj\hat{\tens\varpi}_{\tuple n}^{\tuple h}
+  \sum_{\tuple n\in\cellindices}\conj(\hat{\tens\varpi}_{\tuple n}^{\tuple h})
   \dbldot\hat{\tens\Gamma}_{\tuple n}^{\tuple h}\dbldot
   \hat{\tens\tau}_{\tuple n}^{\tuple h}=\frac1{\lvert\tuple N\rvert^2}
-  \sum_{\tuple n\in\cellindices}\conj\hat{\tens\varpi}_{\tuple n}^{\tuple h}
+  \sum_{\tuple n\in\cellindices}\conj(\hat{\tens\varpi}_{\tuple n}^{\tuple h})
   \dbldot\hat{\tens\eta}_{\tuple n}^{\tuple h}=\frac1{\lvert\tuple N\rvert}
   \sum_{\tuple p\in\cellindices}\tens\varpi_{\tuple p}^{\tuple h}
   \dbldot\tens\eta_{\tuple n}^{\tuple h}
@@ -591,16 +592,16 @@ In the remainder of this chapter, we propose various discretizations of the
 Green operator. Before we proceed, though, it should be emphasized that the
 discrete Green operator must map a \emph{real} field onto a \emph{real}
 field. In other words, we must have
-\(\hat{\tens\eta}_{\tuple N-\tuple n}^{\tuple h}=\conj\hat{\tens\eta}_{\tuple
-  n}^{\tuple h}\) for all \(\tuple n\). Since
+\(\hat{\tens\eta}_{\tuple N-\tuple n}^{\tuple h}=\conj(\hat{\tens\eta}_{\tuple
+  n}^{\tuple h})\) for all \(\tuple n\). Since
 \(\hat{\tens\eta}_{\tuple n}^{\tuple h} =\hat{\tens\Gamma}_{\tuple n}^{\tuple
   h}\dbldot \hat{\tens\tau}_{\tuple n}^{\tuple h}\) and
 \(\hat{\tens\tau}_{\tuple n}\) already satisfies this condition (it is the DFT
 of a \emph{real} field), any discrete operator that will be considered below
 must ensure that
 \begin{equation}
-  \hat{\tens\Gamma}_{\tuple N-\tuple n}^{\tuple h}=\conj\hat{\tens\Gamma}_{\tuple
-    n}^{\tuple h}\quad\text{for all }\tuple n\in\cellindices.
+  \hat{\tens\Gamma}_{\tuple N-\tuple n}^{\tuple h}=\conj(\hat{\tens\Gamma}_{\tuple
+    n}^{\tuple h})\quad\text{for all }\tuple n\in\cellindices.
 \end{equation}
 
 \todo{start from here}
