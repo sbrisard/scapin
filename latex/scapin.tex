@@ -515,6 +515,91 @@ while the second sum in square brackets reduces to
   \hat{\tens\tau}_{\tuple n}^{\tuple h}.
 \end{equation}
 
+The above equation can be understood as follows. \(\tens\Gamma^{\tuple h}\) is
+a linear operator that maps the cell-wise constant field
+\(\tens\tau^{\tuple h}\) to the cell-wise constant field
+\(\tens\eta^{\tuple h}\), the cell-values of which are given by their DFT
+\begin{equation}
+  \tens{\eta}_{\tuple p}^{\tuple h}=
+  \dft^{-1}_{\tuple p}(\hat{\tens\eta}_{\bullet}^{\tuple h}),\quad\text{with}
+  \quad\hat{\tens\eta}_{\tuple n}^{\tuple h}
+  =\hat{\tens\Gamma}_{\tuple n}^{\tuple h}\dbldot
+  \hat{\tens\tau}_{\tuple n}^{\tuple h}.
+\end{equation}
+
+Then, from the Plancherel theorem \todo{xref}
+\begin{equation}
+  \frac1{\lvert\tuple N\rvert^2}
+  \sum_{\tuple n\in\cellindices}\conj\hat{\tens\varpi}_{\tuple n}^{\tuple h}
+  \dbldot\hat{\tens\Gamma}_{\tuple n}^{\tuple h}\dbldot
+  \hat{\tens\tau}_{\tuple n}^{\tuple h}=\frac1{\lvert\tuple N\rvert^2}
+  \sum_{\tuple n\in\cellindices}\conj\hat{\tens\varpi}_{\tuple n}^{\tuple h}
+  \dbldot\hat{\tens\eta}_{\tuple n}^{\tuple h}=\frac1{\lvert\tuple N\rvert}
+  \sum_{\tuple p\in\cellindices}\tens\varpi_{\tuple p}^{\tuple h}
+  \dbldot\tens\eta_{\tuple n}^{\tuple h}
+\end{equation}
+and the last sum can be seen as the volume average
+\(\langle\tens\varpi^{\tuple h}\dbldot\tens\eta^{\tuple
+  h}\rangle\). Remembering that this expression was proposed as an
+approximation of
+\(\langle\tens\varpi^{\tuple h}\dbldot\tens\Gamma(\tens\tau^{\tuple h})\rangle\),
+we finally find
+\begin{equation}
+  \langle\tens\varpi^{\tuple h}\dbldot\tens\Gamma(\tens\tau^{\tuple h})\rangle\simeq\langle\tens\varpi^{\tuple h}\dbldot\tens\eta^{\tuple h}\rangle=\langle\tens\varpi^{\tuple h}\dbldot\tens\Gamma^{\tuple h}(\tens\tau^{\tuple h})\rangle\quad\text{for all }\tens\varpi^{\tuple h}\in\tensors_2^{\tuple h}(\Omega),
+\end{equation}
+from which we find
+\begin{equation}
+  \tens\Gamma(\tens\tau^{\tuple h})\simeq\tens\Gamma^{\tuple h}
+  (\tens\tau^{\tuple h}).
+\end{equation}
+
+The discrete Green operator, which was first introduced as an approximation of
+the continuous Green operator, seen as a bilinear form, can also be understood
+as an approximation of the continuous Green operator, seen as a linear
+mapping. This latter point of view will become extremely efficient when it
+comes to discretizing the Lippmann--Schwinger equation.
+
+It results from the above developments that an explicit expression of the
+discrete Green operator as a (gigantic) matrix is never needed. Instead, the
+matrix-vector product
+\(\tens\tau^{\tuple h}\mapsto\tens\Gamma^{\tuple h}(\tens\tau^{\tuple h})\) is
+implemented in a matrix-free fashion as follows
+\begin{enumerate}
+\item\label{item:20202818112815} Given
+  \(\tens\tau^{\tuple h}\in\tensors_2^{\tuple h}(\Omega)\), compute the
+  discrete Fourier transform \(\hat{\tens\tau}_{\tuple n}^{\tuple h}\) of its
+  cell-values:
+  \(\hat{\tens\tau}_{\tuple n}^{\tuple h}=\dft_{\tuple
+    n}(\tens\tau_\bullet^{\tuple h})\),
+\item for each discrete frequency, compute
+  \(\hat{\tens\eta}_{\tuple n}^{\tuple h}=\hat{\tens\Gamma}_{\tuple n}^{\tuple
+    h}\dbldot\hat{\tens\tau}_{\tuple n}^{\tuple h}\),
+\item\label{item:20202818112832} compute the inverse discrete Fourier transform
+  \(\tens\eta_{\tuple{p}}^{\tuple h}\) of \(\hat{\tens\eta}_{\tuple{n}}^{\tuple h}\),
+\end{enumerate}
+discrete Fourier transforms being computed in steps~\ref{item:20202818112815}
+and \ref{item:20202818112832} by means of the FFT.
+
+\bigskip
+
+In the remainder of this chapter, we propose various discretizations of the
+Green operator. Before we proceed, though, it should be emphasized that the
+discrete Green operator must map a \emph{real} field onto a \emph{real}
+field. In other words, we must have
+\(\hat{\tens\eta}_{\tuple N-\tuple n}^{\tuple h}=\conj\hat{\tens\eta}_{\tuple
+  n}^{\tuple h}\) for all \(\tuple n\). Since
+\(\hat{\tens\eta}_{\tuple n}^{\tuple h} =\hat{\tens\Gamma}_{\tuple n}^{\tuple
+  h}\dbldot \hat{\tens\tau}_{\tuple n}^{\tuple h}\) and
+\(\hat{\tens\tau}_{\tuple n}\) already satisfies this condition (it is the DFT
+of a \emph{real} field), any discrete operator that will be considered below
+must ensure that
+\begin{equation}
+  \hat{\tens\Gamma}_{\tuple N-\tuple n}^{\tuple h}=\conj\hat{\tens\Gamma}_{\tuple
+    n}^{\tuple h}\quad\text{for all }\tuple n\in\cellindices.
+\end{equation}
+
+\todo{start from here}
+
 In order to solve the Lippmann--Schwinger equation, we
 need to evaluate \(\tens\Gamma(\tens\tau^h)\). Since \(\tens\tau^h\) is
 cell-wise constant, its Fourier coefficients can be computed explicitly, and
@@ -558,18 +643,6 @@ Eq.~\eqref{eq:20202118112132} is not practical, as the infinite
 series~\eqref{eq:20202218112204} can in general not be evaluated. However, it
 shows that \(\tens\Gamma(\tens\tau^h)\) could in principle be computed very
 efficiently in Fourier space as follows
-\begin{enumerate}
-\item\label{item:20202818112815} compute the discrete Fourier transform
-  \(\hat{\tens\tau}_{\tuple{n}}^h\) of the cell-values \(\tens\tau_{\tuple{p}}^h\),
-\item for each discrete frequency, compute
-  \(\hat{\tens\eta}_{\tuple{n}}^h=\hat{\tens\Gamma}_{\tuple{n}}^{h,\mathrm{c}}\dbldot\hat{\tens\tau}_{\tuple{n}}^h\),
-\item\label{item:20202818112832} compute the inverse discrete Fourier transform
-  \(\tens\eta_{\tuple{p}}^h\) of \(\hat{\tens\eta}_{\tuple{n}}^h\),
-\end{enumerate}
-discrete Fourier transforms being computed in steps~\ref{item:20202818112815}
-and \ref{item:20202818112832} by means of the FFT. In the remainder of this
-section, we propose various alternate discretizations that \emph{are}
-computable, while preserving the above nice (block-circulant) structure.
 
 It is important to note that, regardless of the exact definition of the discrete Green operator \(\hat{\tens\Gamma}_{\tuple{n}}^h\),  \(\tens\eta_{\tuple{p}}^h\) must be \emph{real}.
 
