@@ -381,14 +381,19 @@ most important results concerning the DFT are the \emph{inversion formula}
 \begin{equation}
   x_{\tuple{p}}=\frac1{\lvert\tuple{N}\rvert}\sum_{n_1=0}^{N_1-1}\cdots
   \sum_{n_d=0}^{N_d-1}\exp\Bigl[2\I\PI\Bigl(\frac{n_1p_1}{N_1}+\cdots+
-  \frac{n_dp_d}{N_d}\Bigr)\Bigr]\dft_{\tuple{n}}(x)
+  \frac{n_dp_d}{N_d}\Bigr)\Bigr]\dft_{\tuple{n}}(x),
 \end{equation}
-and the circular convolution theorem, which states that
+the \emph{Plancherel theorem}
+\begin{equation}
+  \label{eq:20203128093105}
+  \sum_{p_1=1}^{N_1-1}\cdots\sum_{p_d=1}^{N_d-1}\conj(x_{\tuple p})y_{\tuple p}
+  =\frac1{\lvert\tuple N\rvert}\sum_{n_1=1}^{N_1-1}\cdots\sum_{n_d=1}^{N_d-1}
+  \conj(\dft_{\tuple n}(x))\dft_{\tuple n}(y),
+\end{equation}
+and the \emph{circular convolution theorem}
 \begin{equation}
   \dft_{\tuple{n}}(x\ast y)=\dft_{\tuple{n}}(x)\dft_{\tuple{n}}(y),
-\end{equation}
-where \(z=x\ast y\) denotes the convolution product
-\begin{equation}
+  \quad\text{where}\quad
   (x\ast y)_{\tuple p}=\sum_{q_1=0}^{N_1-1}\cdots\sum_{q_d=0}^{N_d-1}
   x_{\tuple{q}}y_{\tuple{p}-\tuple{q}}.
 \end{equation}
@@ -527,7 +532,7 @@ a linear operator that maps the cell-wise constant field
   \hat{\tens\tau}_{\tuple n}^{\tuple h}.
 \end{equation}
 
-Then, from the Plancherel theorem \todo{xref}
+Then, from the Plancherel theorem
 \begin{equation}
   \frac1{\lvert\tuple N\rvert^2}
   \sum_{\tuple n\in\cellindices}\conj\hat{\tens\varpi}_{\tuple n}^{\tuple h}
