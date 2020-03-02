@@ -411,6 +411,81 @@ have the following property
 The above condition is actually a \emph{necessary and sufficient} condition for
 the \(x_{\tuple{p}}\) to be real.
 
+\section{The \texttt{fftfreq} function}
+
+For \(n, N\in\naturals\), \(0\leq n<N\), we introduce \(Z(n, N)\)
+\begin{equation}
+  Z(n, N)=
+  \begin{cases}
+    n & \text{if }2n<N,\\
+    n-N & \text{otherwise.}
+  \end{cases}
+\end{equation}
+For \(n<0\) or \(n\geq N\), \(Z(n, N)\) is defined by \(N\)-periodicity. \(Z\)
+is very similar to the NumPy
+\href{https://numpy.org/doc/1.18/reference/generated/numpy.fft.fftfreq.html#numpy.fft.fftfreq}{fftfreq}
+function. We have the important result
+\begin{equation}
+  Z(N-n, N)=
+  \begin{cases}
+    Z(n) & \text{if }2n=N,\\
+    -Z(n) & \text{otherwise.}
+  \end{cases}
+\end{equation}
+
+\small
+Indeed
+\begin{enumerate}
+  \setlength{\itemsep}{0pt}
+\item If \(n=0\), then \(Z(N-n, N)=Z(N, N)=Z(0, N)=0=-Z(n, N)\).
+\item If \(N\) is even, \(N=2M\)
+  \begin{enumerate}
+    \setlength{\itemsep}{0pt}
+  \item If \(0<n<M\)
+    \begin{gather*}
+      2n<N\quad\Rightarrow\quad Z(n, N)=n,\\
+      \begin{aligned}
+        M<N-n&\quad\Rightarrow\quad N<2\bigl(N-n\bigr)\\
+        &\quad\Rightarrow\quad Z(N-n, N)=N-n-N=-n.
+      \end{aligned}
+    \end{gather*}
+  \item If \(n=M\)
+    \begin{gather*}
+      2n=N\quad\Rightarrow\quad Z(n, N)=n-N=-M,\\
+      2(N-n)=2M=N\quad\Rightarrow\quad Z(N-n, N)=-M.
+    \end{gather*}
+  \item If \(M<n<N\)
+    \begin{gather*}
+      N<2n\quad\Rightarrow\quad Z(n, N)=n-N,\\
+      \begin{aligned}
+        N-n<M&\quad\Rightarrow\quad 2\bigl(N-n\bigr)<N\\
+        &\quad\Rightarrow\quad Z(N-n, N)=N-n.
+   \end{aligned}
+    \end{gather*}
+  \end{enumerate}
+\item If \(N\) is odd, \(N=2M+1\)
+  \begin{enumerate}
+    \setlength{\itemsep}{0pt}
+  \item If \(0<n\leq M\)
+    \begin{gather*}
+      2n\leq 2M<N\quad\Rightarrow\quad Z(n, N)=n,\\
+      \begin{aligned}
+        M+1\leq N-n&\quad\Rightarrow\quad N<2\bigl(N-n\bigr)\\
+        &\quad\Rightarrow\quad Z(N-n, N)=N-n-N=-n.
+    \end{aligned}
+    \end{gather*}
+  \item If \(M+1\leq n<N\)
+    \begin{gather*}
+      N+1\leq 2n\quad\Rightarrow\quad Z(n, N)=n-N\\
+      \begin{aligned}
+        N-n\leq N-M-1=M&\quad\Rightarrow\quad 2\bigl(N-n\bigr)\leq 2M<N\\
+        &\quad\Rightarrow\quad Z(N-n, N)=N-n
+    \end{aligned}
+    \end{gather*}
+  \end{enumerate}
+\end{enumerate}
+\normalsize
+
 \section{The approximation space}
 
 In order to define a discrete Green operator, we need to introduce the
@@ -652,61 +727,6 @@ efficiently in Fourier space as follows
 
 It is important to note that, regardless of the exact definition of the discrete Green operator \(\hat{\tens\Gamma}_{\tuple{n}}^h\),  \(\tens\eta_{\tuple{p}}^h\) must be \emph{real}.
 
-\section{The \texttt{fftfreq} function}
-
-For \(n, N\in\naturals\), \(0\leq n<N\), we introduce \(Z(n, N)\)
-\begin{equation}
-  Z(n, N)=
-  \begin{cases}
-    n & \text{if }2n<N,\\
-    n-N & \text{otherwise.}
-  \end{cases}
-\end{equation}
-For \(n<0\) or \(n\geq N\), \(Z(n, N)\) is defined by
-\(N\)-periodicity. \(Z\) is very similar to the
-\texttt{numpy.fft.fftfreq} function. Then
-\begin{equation}
-  Z(N-n, N)=
-  \begin{cases}
-    Z(n) & \text{if }2n=N,\\
-    -Z(n) & \text{otherwise.}
-  \end{cases}
-\end{equation}
-Indeed
-\begin{enumerate}
-\item If \(n=0\), then \(Z(N-n, N)=Z(N, N)=Z(0, N)=0=-Z(n, N)\).
-\item If \(N\) is even, \(N=2M\)
-  \begin{enumerate}
-  \item If \(0<n<M\)
-    \begin{gather*}
-      2n<N\quad\Rightarrow\quad Z(n, N)=n,\\
-      M<N-n\quad\Rightarrow\quad N<2\bigl(N-n\bigr)\quad\Rightarrow\quad Z(N-n, N)=N-n-N=-n.
-    \end{gather*}
-  \item If \(n=M\)
-    \begin{gather*}
-      2n=N\quad\Rightarrow\quad Z(n, N)=n-N=-M,\\
-      2(N-n)=2M=N\quad\Rightarrow\quad Z(N-n, N)=-M.
-    \end{gather*}
-  \item If \(M<n<N\)
-    \begin{gather*}
-      N<2n\quad\Rightarrow\quad Z(n, N)=n-N,\\
-     N-n<M\quad\Rightarrow\quad 2\bigl(N-n\bigr)<N\quad\Rightarrow\quad Z(N-n, N)=N-n.
-    \end{gather*}
-  \end{enumerate}
-\item If \(N\) is odd, \(N=2M+1\)
-  \begin{enumerate}
-  \item If \(0<n\leq M\)
-    \begin{gather*}
-      2n\leq 2M<N\quad\Rightarrow\quad Z(n, N)=n,\\
-      M+1\leq N-n\quad\Rightarrow\quad N<2\bigl(N-n\bigr)\quad\Rightarrow\quad Z(N-n, N)=N-n-N=-n.
-    \end{gather*}
-  \item If \(M+1\leq n<N\)
-    \begin{gather*}
-      N+1\leq 2n\quad\Rightarrow\quad Z(n, N)=n-N\\
-      N-n\leq N-M-1=M\quad\Rightarrow\quad 2\bigl(N-n\bigr)\leq 2M<N\quad\Rightarrow\quad Z(N-n, N)=N-n
-    \end{gather*}
-  \end{enumerate}
-\end{enumerate}
 
 
 \section{The truncated operator of \textcite{moul1998}}
