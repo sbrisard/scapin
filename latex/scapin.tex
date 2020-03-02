@@ -679,57 +679,47 @@ must ensure that
     n}^{\tuple h})\quad\text{for all }\tuple n\in\cellindices.
 \end{equation}
 
-\todo{start from here}
 
-In order to solve the Lippmann--Schwinger equation, we
-need to evaluate \(\tens\Gamma(\tens\tau^h)\). Since \(\tens\tau^h\) is
-cell-wise constant, its Fourier coefficients can be computed explicitly, and
-exact evaluation of \(\tens\Gamma(\tens\tau^h)\) can be performed formally
-\parencite{bris2010a,bris2012a} as follows
+\section{Discretizations of the Green operator}
+
+\subsection{The discretization of \textcite{bris2010a}}
+
+It was proved by \textcite{bris2010a} that, for all
+\(\tens\tau^{\tuple h}, \tens\varpi^{\tuple h}\in\tensors_2^{\tuple
+  h}(\Omega)\)
 \begin{equation}
   \label{eq:20202118112132}
   \langle\tens\varpi^h\dbldot\tens\Gamma(\tens\tau^h)\rangle=\frac1{N^2}
   \sum_{n_1=0}^{N_1-1}\cdots\sum_{n_d=0}^{N_d-1}\conj(\hat{\tens\varpi}_
-  {\tuple{n}}^h)\dbldot\hat{\tens\Gamma}_n^{h, \mathrm{c}}\dbldot
+  {\tuple{n}}^h)\dbldot\hat{\tens\Gamma}_n^{h, \mathrm{BD10}}\dbldot
   \hat{\tens\tau}_{\tuple{n}}^h,
 \end{equation}
-where \(\hat{\tens\tau}_{\tuple{n}}^h\) denote the discrete Fourier transform
-of the \(\tens\tau_{\tuple{p}}^h\)
-\begin{equation}
-  \hat{\tens\tau}_{\tuple{n}}^h=\sum_{p_1=0}^{N_1-1}\cdots\sum_{p_d=0}^{N_d-1}\exp\Bigl[
-  -2i\pi\Bigl(\frac{p_1n_1}{N_1}+\cdots\frac{p_dn_d}{N_d}\Bigr)\Bigr]
-  \hat{\tens\tau}_{\tuple{p}}^h
-\end{equation}
-and \(\hat{\tens\Gamma}_{\tuple{n}}^{h, \mathrm{c}}\) is the \emph{consistent}
-discretization of the Green operator
+where
 \begin{equation}
   \label{eq:20202218112204}
-  \hat{\tens\Gamma}_{\tuple{n}}^{h, \mathrm{c}}=\sum_{m\in\integers^d}\bigl[F(\vec
-  \alpha_{\tuple{n+mN}})\bigr]^2\hat{\tens\Gamma}(\vec k_{\tuple{n+mN}}),
+  \hat{\tens\Gamma}_{\tuple n}^{\tuple h, \mathrm{BD10}}
+  =\sum_{\tuple m\in\integers^d}\bigl[F(\vec\alpha_{\tuple n+\tuple m\tuple N})
+  \bigr]^2\hat{\tens\Gamma}(\vec k_{\tuple n+\tuple m\tuple N}),
 \end{equation}
-where \(\tuple{n+mN}\) denotes the following \(d\)-tuple
+where \(\tuple{n+mN}\) denotes the \(d\)-tuple:
+\(\tuple n+\tuple m\tuple N=(n_1+m_1N_1, \ldots, n_d+m_dN_d)\), while
+\(\alpha_{\tuple{n}}\) is the following dimensionless vector
 \begin{equation}
-  \tuple{n+mN}=\bigl(n_1+m_1N_1, \ldots, n_d+m_dN_d\bigr),
+  \vec\alpha_{\tuple{n}}=\frac{2\pi h_1n_1}{L_1}\vec e_1+\cdots+\frac{2\pi h_dn_d}{L_d}\vec e_d,
 \end{equation}
-while \(\alpha_{\tuple{n}}\) is the following dimensionless vector
-\begin{equation}
-  \vec\alpha_{\tuple{n}}=\frac{2\pi h_1n_1}{L_1}\vec e_1+\cdots+\frac{2\pi h_dn_d}{L_d}\vec e_d.
-\end{equation}
-Finally, \(F\) is the tensor product of sine cardinal functions
+finally, \(F\) is the tensor product of sine cardinal functions
 \begin{equation}
   F(\vec\alpha)=\sinc\frac{\alpha_1}2\cdots\sinc\frac{\alpha_d}2.
 \end{equation}
 
-Eq.~\eqref{eq:20202118112132} is not practical, as the infinite
-series~\eqref{eq:20202218112204} can in general not be evaluated. However, it
-shows that \(\tens\Gamma(\tens\tau^h)\) could in principle be computed very
-efficiently in Fourier space as follows
+Note that Eq.~\eqref{eq:20202118112132} is \emph{exact}: if the series involved
+in Eq.~\eqref{eq:20202218112204} could be evaluated, then the Green operator
+could be applied exactly to any cell-wise constant polarization
+field. Unfortunately, this series can in general not be evaluated, owing to
+very slow convergence. Therefore, this discrete Green operator is unpractical,
+and is recalled here only for pedagocial reasons.
 
-It is important to note that, regardless of the exact definition of the discrete Green operator \(\hat{\tens\Gamma}_{\tuple{n}}^h\),  \(\tens\eta_{\tuple{p}}^h\) must be \emph{real}.
-
-
-
-\section{The truncated operator of \textcite{moul1998}}
+\subsection{The truncated operator of \textcite{moul1998}}
 
 \begin{equation}
   \hat{\tens\Gamma}_{\tuple{n}}^{h, \mathrm{MS98}}=\hat{\tens\Gamma}(\vec k_{\tuple{m}}),\quad\text{with}\quad
