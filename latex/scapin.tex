@@ -62,6 +62,7 @@
 
   \newcommand{\PI}{\symup{\pi}}
 }
+\newcommand{\scapin}{\texttt{Scapin}}
 \DeclareMathOperator{\sinc}{sinc}
 \newcommand{\tensors}{\mathcal T}
 \newcommand{\stresses}{\mathcal S}
@@ -424,8 +425,10 @@ For \(n, N\in\naturals\), \(0\leq n<N\), we introduce \(Z(n, N)\)
 For \(n<0\) or \(n\geq N\), \(Z(n, N)\) is defined by \(N\)-periodicity. \(Z\)
 is very similar to the NumPy
 \href{https://numpy.org/doc/1.18/reference/generated/numpy.fft.fftfreq.html#numpy.fft.fftfreq}{fftfreq}
-function. We have the important result
+function. We have the important result (see proof in
+Sec.~\ref{sec:20202503052552} of Appendix~\ref{cha:20202603052606})
 \begin{equation}
+  \label{eq:20202503052504}
   Z(N-n, N)=
   \begin{cases}
     Z(n) & \text{if }2n=N,\\
@@ -433,58 +436,15 @@ function. We have the important result
   \end{cases}
 \end{equation}
 
-\small
-Indeed
-\begin{enumerate}
-  \setlength{\itemsep}{0pt}
-\item If \(n=0\), then \(Z(N-n, N)=Z(N, N)=Z(0, N)=0=-Z(n, N)\).
-\item If \(N\) is even, \(N=2M\)
-  \begin{enumerate}
-    \setlength{\itemsep}{0pt}
-  \item If \(0<n<M\)
-    \begin{gather*}
-      2n<N\quad\Rightarrow\quad Z(n, N)=n,\\
-      \begin{aligned}
-        M<N-n&\quad\Rightarrow\quad N<2\bigl(N-n\bigr)\\
-        &\quad\Rightarrow\quad Z(N-n, N)=N-n-N=-n.
-      \end{aligned}
-    \end{gather*}
-  \item If \(n=M\)
-    \begin{gather*}
-      2n=N\quad\Rightarrow\quad Z(n, N)=n-N=-M,\\
-      2(N-n)=2M=N\quad\Rightarrow\quad Z(N-n, N)=-M.
-    \end{gather*}
-  \item If \(M<n<N\)
-    \begin{gather*}
-      N<2n\quad\Rightarrow\quad Z(n, N)=n-N,\\
-      \begin{aligned}
-        N-n<M&\quad\Rightarrow\quad 2\bigl(N-n\bigr)<N\\
-        &\quad\Rightarrow\quad Z(N-n, N)=N-n.
-   \end{aligned}
-    \end{gather*}
-  \end{enumerate}
-\item If \(N\) is odd, \(N=2M+1\)
-  \begin{enumerate}
-    \setlength{\itemsep}{0pt}
-  \item If \(0<n\leq M\)
-    \begin{gather*}
-      2n\leq 2M<N\quad\Rightarrow\quad Z(n, N)=n,\\
-      \begin{aligned}
-        M+1\leq N-n&\quad\Rightarrow\quad N<2\bigl(N-n\bigr)\\
-        &\quad\Rightarrow\quad Z(N-n, N)=N-n-N=-n.
-    \end{aligned}
-    \end{gather*}
-  \item If \(M+1\leq n<N\)
-    \begin{gather*}
-      N+1\leq 2n\quad\Rightarrow\quad Z(n, N)=n-N\\
-      \begin{aligned}
-        N-n\leq N-M-1=M&\quad\Rightarrow\quad 2\bigl(N-n\bigr)\leq 2M<N\\
-        &\quad\Rightarrow\quad Z(N-n, N)=N-n
-    \end{aligned}
-    \end{gather*}
-  \end{enumerate}
-\end{enumerate}
-\normalsize
+The \(Z\) function can be defined for \(d\)-tuples as well
+\begin{equation}
+  \tuple Z(\tuple n, \tuple N)=(Z(n_1, N_1), \ldots, Z(n_d, N_d))
+\end{equation}
+and we have again
+\begin{equation}
+  \tuple Z(\tuple N-\tuple n, \tuple N)=-\tuple Z(\tuple n)
+\end{equation}
+if none of the \(n_i\) is such that \(2n_i=N_i\).
 
 \section{The approximation space}
 
@@ -675,10 +635,10 @@ field. In other words, we must have
 of a \emph{real} field), any discrete operator that will be considered below
 must ensure that
 \begin{equation}
+  \label{eq:20203503053509}
   \hat{\tens\Gamma}_{\tuple N-\tuple n}^{\tuple h}=\conj(\hat{\tens\Gamma}_{\tuple
     n}^{\tuple h})\quad\text{for all }\tuple n\in\cellindices.
 \end{equation}
-
 
 \section{Discretizations of the Green operator}
 
@@ -719,12 +679,109 @@ field. Unfortunately, this series can in general not be evaluated, owing to
 very slow convergence. Therefore, this discrete Green operator is unpractical,
 and is recalled here only for pedagocial reasons.
 
-\subsection{The truncated operator of \textcite{moul1998}}
+\subsection{The discretization of \textcite{moul1994, moul1998}}
 
+Probably the most simple discretization, introduced first by
+\textcite{moul1994}. Only the lowest (positive and negative) frequencies are
+kept
 \begin{equation}
-  \hat{\tens\Gamma}_{\tuple{n}}^{h, \mathrm{MS98}}=\hat{\tens\Gamma}(\vec k_{\tuple{m}}),\quad\text{with}\quad
-  m_i=Z(n_i, N_i),\quad i=1,\ldots, d.
+  \hat{\tens\Gamma}_{\tuple n}^{\tuple h, \mathrm{MS94}}=\hat{\tens\Gamma}
+  (\vec k_{\tuple Z(\tuple n, \tuple N)}).
 \end{equation}
+Check that property \eqref{eq:20203503053509} is satisfied. Using
+Eq.~\eqref{eq:20202503052504} and assuming first that none of the \(n_i\) is
+such that \(2n_i=N_i\)
+\begin{equation}
+  \hat{\tens\Gamma}_{\tuple N-\tuple n}^{\tuple h, \mathrm{MS94}}
+  =\hat{\tens\Gamma}(\vec k_{\tuple Z(\tuple N-\tuple n, \tuple N)})
+  =\hat{\tens\Gamma}(\vec k_{-\tuple Z(\tuple n, \tuple N)})
+  =\hat{\tens\Gamma}(-\vec k_{\tuple Z(\tuple n, \tuple N)})
+\end{equation}
+All Green operators presented in Chap.~\ref{chap:202002060528} are such that
+\(\hat{\tens\Gamma}(-\vec k)=\hat{\tens\Gamma}(\vec k)\), therefore
+\begin{equation}
+  \hat{\tens\Gamma}_{\tuple N-\tuple n}^{\tuple h, \mathrm{MS94}}
+  =\hat{\tens\Gamma}(\vec k_{\tuple Z(\tuple n, \tuple N)})
+  =\hat{\tens\Gamma}_{\tuple n}^{\tuple h, \mathrm{MS94}}
+\end{equation}
+and the property is verified. Conversely, if all the \(n_i\) are such that
+\(2n_i=N_i\), then
+\begin{equation}
+  \hat{\tens\Gamma}_{\tuple N-\tuple n}^{\tuple h, \mathrm{MS94}}
+  =\hat{\tens\Gamma}(\vec k_{\tuple Z(\tuple N-\tuple n, \tuple N)})
+  =\hat{\tens\Gamma}(\vec k_{\tuple Z(\tuple n, \tuple N)})
+  =\hat{\tens\Gamma}_{\tuple n}^{\tuple h, \mathrm{MS94}}.
+\end{equation}
+
+More problematic is the case when a few, but not all, \(n_i\) are such that
+\(2n_i=N_i\). Then the property does not hold for such
+frequencies. \textcite{moul1998} use a specific treatment for such cases
+\begin{equation}
+  \hat{\tens\Gamma}(\vec k_{\tuple n})=\tens C^{-1},
+\end{equation}
+if one of the \(n_i\) is such that \(2n_i=N_i\). This is implemented in
+\scapin. Note that such cases occur only for even-sized grids.
+
+\appendix
+
+\chapter{On discrete Green operators}
+\label{cha:20202603052606}
+
+\section{Properties of the \(Z\) function}
+\label{sec:20202503052552}
+
+In this paragraph, we prove Eq.~\eqref{eq:20202503052504}. Several cases must
+be considered.
+
+\begin{enumerate}
+  \setlength{\itemsep}{0pt}
+\item If \(n=0\), then \(Z(N-n, N)=Z(N, N)=Z(0, N)=0=-Z(n, N)\).
+\item If \(N\) is even, \(N=2M\)
+  \begin{enumerate}
+    \setlength{\itemsep}{0pt}
+  \item If \(0<n<M\)
+    \begin{gather*}
+      2n<N\quad\Rightarrow\quad Z(n, N)=n,\\
+      \begin{aligned}
+        M<N-n&\quad\Rightarrow\quad N<2\bigl(N-n\bigr)\\
+        &\quad\Rightarrow\quad Z(N-n, N)=N-n-N=-n.
+      \end{aligned}
+    \end{gather*}
+  \item If \(n=M\)
+    \begin{gather*}
+      2n=N\quad\Rightarrow\quad Z(n, N)=n-N=-M,\\
+      2(N-n)=2M=N\quad\Rightarrow\quad Z(N-n, N)=-M.
+    \end{gather*}
+  \item If \(M<n<N\)
+    \begin{gather*}
+      N<2n\quad\Rightarrow\quad Z(n, N)=n-N,\\
+      \begin{aligned}
+        N-n<M&\quad\Rightarrow\quad 2\bigl(N-n\bigr)<N\\
+        &\quad\Rightarrow\quad Z(N-n, N)=N-n.
+   \end{aligned}
+    \end{gather*}
+  \end{enumerate}
+\item If \(N\) is odd, \(N=2M+1\)
+  \begin{enumerate}
+    \setlength{\itemsep}{0pt}
+  \item If \(0<n\leq M\)
+    \begin{gather*}
+      2n\leq 2M<N\quad\Rightarrow\quad Z(n, N)=n,\\
+      \begin{aligned}
+        M+1\leq N-n&\quad\Rightarrow\quad N<2\bigl(N-n\bigr)\\
+        &\quad\Rightarrow\quad Z(N-n, N)=N-n-N=-n.
+    \end{aligned}
+    \end{gather*}
+  \item If \(M+1\leq n<N\)
+    \begin{gather*}
+      N+1\leq 2n\quad\Rightarrow\quad Z(n, N)=n-N\\
+      \begin{aligned}
+        N-n\leq N-M-1=M&\quad\Rightarrow\quad 2\bigl(N-n\bigr)\leq 2M<N\\
+        &\quad\Rightarrow\quad Z(N-n, N)=N-n
+    \end{aligned}
+    \end{gather*}
+  \end{enumerate}
+\end{enumerate}
 
 
 \printbibliography
