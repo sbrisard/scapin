@@ -1,0 +1,13 @@
+name = "Scapin"
+uuid = "2fa729af-4c93-4cec-8196-a4d4a1a66870"
+authors = ["Sébastien Brisard <sebastien.brisard@univ-eiffel.fr>"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
