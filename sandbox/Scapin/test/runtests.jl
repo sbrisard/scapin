@@ -38,6 +38,12 @@ function block_matrix_ref(hooke::Hooke{T,DIM}, k::SVector{DIM,T}) where {T,DIM}
     mat
 end
 
+function ms94_frequencies(N, L)
+    # TODO Ensure that π and L are of the same type
+    # TODO Can we remove type parameters?
+    [2π*(2n < N ? n : n-N)/L for n=1:N]
+end
+
 @testset "Green operator for 2D linear elasticity" begin
     hooke = Hooke{Float64,2}(5.6, 0.3)
     for k_norm ∈ [0.12, 2.3, 14.5]
@@ -63,5 +69,33 @@ end
                 @test all(isapprox.(act, exp, atol = 1e-15))
             end
         end
+    end
+end
+
+@testset "Discrete Green operator [MS94], Hooke 2D" begin
+    T = Float64
+    DIM = 2
+    Γ = Hooke{T, DIM}(1.2, 0.3)
+    N = @SVector [5, 6]
+    L = @SVector [3.4, 5.6]
+    Γ_h = TruncatedGreenOperator{T, DIM}(Γ, N, L)
+    @test Γ_h.N == N
+    @test Γ_h.L == L
+    for i = 1:DIM
+        @test Γ_h.k[i] == ms94_frequencies(N[i], L[i])
+    end
+end
+
+@testset "Discrete Green operator [MS94], Hooke 3D" begin
+    T = Float64
+    DIM = 3
+    Γ = Hooke{T, DIM}(1.2, 0.3)
+    N = @SVector [5, 6, 7]
+    L = @SVector [3.4, 5.6, 7.8]
+    Γ_h = TruncatedGreenOperator{T, DIM}(Γ, N, L)
+    @test Γ_h.N == N
+    @test Γ_h.L == L
+    for i = 1:DIM
+        @test Γ_h.k[i] == ms94_frequencies(N[i], L[i])
     end
 end

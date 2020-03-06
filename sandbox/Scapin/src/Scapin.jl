@@ -4,7 +4,7 @@ using AbstractFFTs
 using StaticArrays
 import Base: size
 
-export Hooke, block_apply!, block_matrix
+export Hooke, block_apply!, block_matrix, TruncatedGreenOperator
 
 struct Hooke{T,DIM}
     μ::T
