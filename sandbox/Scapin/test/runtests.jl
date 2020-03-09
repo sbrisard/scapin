@@ -69,12 +69,11 @@ end
 @testset "Discrete Green operator [MS94], Hooke 2D" begin
     T = Float64
     DIM = 2
-    Γ = Hooke{T, DIM}(1.2, 0.3)
+    Γ = Hooke{T,DIM}(1.2, 0.3)
     N = @SVector [5, 6]
     L = @SVector [3.4, 5.6]
-    Γ_h = TruncatedGreenOperator{T, DIM}(Γ, N, L)
-    k = [(2π/L[1])*[zero(T), 1, 2, -2, -1],
-         (2π/L[2])*[zero(T), 1, 2, -3, -2, -1]]
+    Γ_h = TruncatedGreenOperator{T,DIM}(Γ, N, L)
+    k = [(2π / L[1]) * [zero(T), 1, 2, -2, -1], (2π / L[2]) * [zero(T), 1, 2, -3, -2, -1]]
     @test Γ_h.N == N
     @test Γ_h.L == L
     @test Γ_h.k == k
@@ -83,13 +82,15 @@ end
 @testset "Discrete Green operator [MS94], Hooke 3D" begin
     T = Float64
     DIM = 3
-    Γ = Hooke{T, DIM}(1.2, 0.3)
+    Γ = Hooke{T,DIM}(1.2, 0.3)
     N = @SVector [5, 6, 7]
     L = @SVector [3.4, 5.6, 7.8]
-    Γ_h = TruncatedGreenOperator{T, DIM}(Γ, N, L)
-    k = [(2π/L[1])*[zero(T), 1, 2, -2, -1],
-         (2π/L[2])*[zero(T), 1, 2, -3, -2, -1],
-         (2π/L[3])*[zero(T), 1, 2, 3, -3, -2, -1]]
+    Γ_h = TruncatedGreenOperator{T,DIM}(Γ, N, L)
+    k = [
+        (2π / L[1]) * [zero(T), 1, 2, -2, -1],
+        (2π / L[2]) * [zero(T), 1, 2, -3, -2, -1],
+        (2π / L[3]) * [zero(T), 1, 2, 3, -3, -2, -1],
+    ]
     @test Γ_h.N == N
     @test Γ_h.L == L
     @test Γ_h.k == k

@@ -60,19 +60,21 @@ end
 
 function ms94_frequencies(N, L) where {T}
     # TODO Ensure that π and L are of the same type
-    [(2π/L)*(2n < N ? n : n-N) for n=0:N-1]
+    [(2π / L) * (2n < N ? n : n - N) for n = 0:N-1]
 end
 
-struct TruncatedGreenOperator{T, DIM}
-    Γ::Hooke{T, DIM}
-    N::SVector{DIM, Int}
-    L::SVector{DIM, T}
+struct TruncatedGreenOperator{T,DIM}
+    Γ::Hooke{T,DIM}
+    N::SVector{DIM,Int}
+    L::SVector{DIM,T}
     # TODO: I would like k to be a SVector
-    k::AbstractArray{AbstractArray{T, 1}, 1}
-    function TruncatedGreenOperator{T, DIM}(Γ::Hooke{T, DIM},
-                                            N::SVector{DIM, Int},
-                                            L::SVector{DIM, T}) where {T, DIM}
-        k = [ms94_frequencies(N[i], L[i]) for i in 1:DIM]
+    k::AbstractArray{AbstractArray{T,1},1}
+    function TruncatedGreenOperator{T,DIM}(
+        Γ::Hooke{T,DIM},
+        N::SVector{DIM,Int},
+        L::SVector{DIM,T},
+    ) where {T,DIM}
+        k = [ms94_frequencies(N[i], L[i]) for i = 1:DIM]
         new(Γ, N, L, k)
     end
 end
