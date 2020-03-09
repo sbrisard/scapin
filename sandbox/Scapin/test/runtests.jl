@@ -38,7 +38,7 @@ function block_matrix_ref(hooke::Hooke{T,DIM}, k::SVector{DIM,T}) where {T,DIM}
     mat
 end
 
-@testset "Green operator for 2D linear elasticity" begin
+@testset "Green operator, Hooke 2D" begin
     hooke = Hooke{Float64,2}(5.6, 0.3)
     for k_norm ∈ [0.12, 2.3, 14.5]
         for θ ∈ LinRange(0.0, 2 * π, 21)[1:end-1]
@@ -51,7 +51,7 @@ end
     end
 end
 
-@testset "Green operator for 3D linear elasticity" begin
+@testset "Green operator, Hooke 3D" begin
     hooke = Hooke{Float64,3}(5.6, 0.3)
     for k_norm ∈ [0.12, 2.3, 14.5]
         for φ ∈ LinRange(0.0, 2 * π, 21)[1:end-1]
