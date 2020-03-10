@@ -79,9 +79,13 @@ struct TruncatedGreenOperator{T,DIM}
     end
 end
 
-# function apply!(out, Γ_h::TruncatedGreenOperator{T, DIM}, i, τ) where {T, DIM}
-#     block_apply!(out, Γ_h.Γ, Γ_h.k[i], τ)
-#     return τ
-# end
+function block_apply!(out::AbstractArray{T, DIM}, Γ_h::TruncatedGreenOperator{T, DIM}, n::SVector{DIM, Int}, τ::AbstractArray{T, DIM}) where {T, DIM}
+    k = SVector [Γ_h.k[n[i]] for i=1:DIM]
+    block_apply!(out, Γ_h.Γ, k, τ)
+    return τ
+end
+
+function apply(out::AbstractArray{T, DIM+1}, Γ_h::TruncatedGreenOperator{T, DIM}, τ::AbstractArray{T, DIM+1}) where {T, DIM}
+end
 
 end # module
