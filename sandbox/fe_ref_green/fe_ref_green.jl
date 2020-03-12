@@ -5,44 +5,75 @@ struct CartesianGrid{DIM}
     N::SVector{DIM,Int}
 end
 
-function modal_strain_displacement(grid::CartesianGrid{2}, k::SVector{2,Int})
-    α₁ = π * k[1] / grid.N[1]
-    α₂ = π * k[2] / grid.N[2]
-    2 *
-    im *
-    exp(im * (α₁ + α₂)) *
-    [N[1] / L[1] * sin(α₁) * cos(α₂), N[2] / L[2] * cos(α₁) * sin(α₂)]
+function modal_strain_displacement(
+    grid::CartesianGrid{DIM},
+    k::SVector{DIM,Int},
+) where {DIM}
+    h⁻¹ = @SVector zeros(DIM)
+    α = @SVector zeros(DIM)
+    c = @SVector zeros(DIM)
+    s = @SVector zeros(DIM)
+
+    for i = 1:DIM
+        h⁻¹[i] = grid.N[i] / grid.L[i]
+        α[i] = π * k[i] / grid.N[i]
+        c[i] = cos(α[i])
+        s[i] = sin(α[i])
+    end
+
+    prefactor = 2 * im * exp(im * sum(α))
+    if DIM == 2
+        return prefactor * [h⁻¹[1] * s[1] * c[2], h⁻¹[2] * c[1] * s[2]]
+    elseif DIM == 3
+        return prefactor * [
+            h⁻¹[1] * s[1] * c[2] * c[3],
+            h⁻¹[2] * c[1] * s[2] * c[3],
+            h⁻¹[3] * c[1] * c[2] * s[3],
+        ]
+    else
+        throw(DomainError(DIM))
+    end
 end
 
-function modal_strain_displacement(grid::CartesianGrid{3}, k::SVector{3,Int})
-    α₁ = π * k[1] / grid.N[1]
-    α₂ = π * k[2] / grid.N[2]
-    α₃ = π * k[3] / grid.N[3]
-    2 *
-    im *
-    exp(im * (α₁ + α₂ + α₃)) *
-    [
-        N[1] / L[1] * sin(α₁) * cos(α₂) * cos(α₃),
-        N[2] / L[2] * cos(α₁) * sin(α₂) * cos(α₃),
-        N[3] / L[3] * cos(α₁) * cos(α₂) * sin(α₃),
-    ]
-end
+function modal_stiffness(grid::CartesianGrid{DIM}, k::SVector{DIM,Int}) where {DIM}
+    # {φ, χ, ψ}[i] = {φ, χ, ψ}(zᵢ) in the notation of [Bri16]
+    h⁻¹ = @SVector zeros(DIM)
+    φ = @SVector zeros(DIM)
+    χ = @SVector zeros(DIM)
+    ψ = @SVector zeros(DIM)
 
-function modal_stiffness(grid::CartesianGrid{2}, k::SVector{2,Int})
-    h₁ = L[1] / N[1]
-    β₁ = 2π * k[1] / grid.N[1]
-    φ₁ = 2 * (1 - cos(β₁))
-    χ₁ = (2 + cos(β₁)) / 3
-    ψ₁ = sin(β₁)
+    for i = 1:DIM
+        h⁻¹[i] = grid.N[i] / grid.L[i]
+        β = 2π * k[i] / grid.N[i]
+        φ[i] = 2 * h⁻¹ * (1 - cos(β))
+        χ[i] = h⁻¹ * (2 + cos(β)) / 3
+        ψ[i] = h⁻¹ * sin(β)
+    end
 
-    h₂ = L[2] / N[2]
-    β₂ = 2π * k[2] / grid.N[2]
-    φ₂ = 2 * (1 - cos(β₂))
-    χ₂ = (2 + cos(β₂)) / 3
-    ψ₂ = sin(β₂)
-
-    H = [
-        [φ₁ * χ₂ / h₁^2 ψ₁ * ψ₂ / h₁ / h₂]
-        [ψ₁ * ψ₂ / h₁ / h₂ χ₁ * φ₂ / h₂^2]
-    ]
+    if DIM == 2
+        return [
+            [h⁻¹[1] * h⁻¹[1] * φ[1] * χ[2], h⁻¹[1] * h⁻¹[2] * ψ[1] * ψ[2]],
+            [h⁻¹[1] * h⁻¹[2] * ψ[1] * ψ[2], h⁻¹[2]^2 * χ[1] * φ[2]],
+        ]
+    elseif DIM == 3
+        return [
+            [
+                h⁻¹[1] * h⁻¹[1] * φ[1] * χ[2] * χ[3],
+                h⁻¹[1] * h⁻¹[2] * ψ[1] * ψ[2] * χ[3],
+                h⁻¹[1] * h⁻¹[3] * ψ[1] * χ[2] * ψ[3],
+            ],
+            [
+                h⁻¹[2] * h⁻¹[1] * ψ[1] * ψ[2] * χ[3],
+                h⁻¹[2] * h⁻¹[2] * χ[1] * φ[2] * χ[3],
+                h⁻¹[2] * h⁻¹[3] * χ[1] * ψ[2] * ψ[3],
+            ],
+            [
+                h⁻¹[3] * h⁻¹[1] * ψ[1] * χ[2] * ψ[3],
+                h⁻¹[3] * h⁻¹[2] * χ[1] * ψ[2] * ψ[3],
+                h⁻¹[3] * h⁻¹[3] * χ[1] * χ[2] * φ[3],
+            ],
+        ]
+    else
+        throw(DomainError(DIM))
+    end
 end
