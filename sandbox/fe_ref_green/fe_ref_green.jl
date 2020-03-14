@@ -15,18 +15,10 @@ function modal_strain_displacement(
     grid::CartesianGrid{DIM},
     k::SVector{DIM,Int},
 ) where {DIM}
-    h⁻¹ = @SVector zeros(DIM)
-    α = @SVector zeros(DIM)
-    c = @SVector zeros(DIM)
-    s = @SVector zeros(DIM)
-
-    for i = 1:DIM
-        h⁻¹[i] = grid.N[i] / grid.L[i]
-        α[i] = π * k[i] / grid.N[i]
-        c[i] = cos(α[i])
-        s[i] = sin(α[i])
-    end
-
+    h⁻¹ = grid.N ./ grid.L
+    α = π * k ./ grid.N
+    c = cos.(α)
+    s = sin.(α)
     prefactor = 2 * im * exp(im * sum(α))
     if DIM == 2
         return prefactor * [h⁻¹[1] * s[1] * c[2], h⁻¹[2] * c[1] * s[2]]
@@ -44,18 +36,11 @@ end
 
 function modal_stiffness(grid::CartesianGrid{DIM}, k::SVector{DIM,Int}) where {DIM}
     # {φ, χ, ψ}[i] = {φ, χ, ψ}(zᵢ) in the notation of [Bri16]
-    h⁻¹ = @SVector zeros(DIM)
-    φ = @SVector zeros(DIM)
-    χ = @SVector zeros(DIM)
-    ψ = @SVector zeros(DIM)
-
-    for i = 1:DIM
-        h⁻¹[i] = grid.N[i] / grid.L[i]
-        β = 2π * k[i] / grid.N[i]
-        φ[i] = 2 * h⁻¹ * (1 - cos(β))
-        χ[i] = h⁻¹ * (2 + cos(β)) / 3
-        ψ[i] = h⁻¹ * sin(β)
-    end
+    h⁻¹ = grid.N ./ grid.L
+    β = 2π * k ./ grid.N
+    φ = 2 * (1 .- cos.(β))
+    χ = (2 .+ cos.(β)) / 3
+    ψ = sin.(β)
 
     if DIM == 2
         return [
@@ -86,19 +71,24 @@ function modal_stiffness(grid::CartesianGrid{DIM}, k::SVector{DIM,Int}) where {D
     end
 end
 
-L2 = @SVector [0.5, 1.]
-N2 = @SVector [32, 64]
-grid2 = CartesianGrid{2}(L2, N2)
-k2 = @SVector [0, 0]
+DIM = 2
+L2 = @SVector [0.5, 1.0]
+N2 = SVector{DIM,Int}(32, 64)
+grid2 = CartesianGrid{DIM}(L2, N2)
+k2 = @SVector [0.0, 0.0]
 B2 = modal_strain_displacement(grid2, k2)
 K2 = modal_stiffness(grid2, k2)
 
-L3 = @SVector [0.5, 1., 2.]
-N3 = @SVector [32, 64, 128]
-grid3 = CartesianGrid{3}(L3, N3)
+DIM = 3
+L3 = @SVector [0.5, 1.0, 2.0]
+N3 = SVector{DIM,Int}(32, 64, 128)
+grid3 = CartesianGrid{DIM}(L3, N3)
+k3 = @SVector [0.0, 0.0]
 B3 = modal_strain_displacement(grid3, k3)
 K3 = modal_stiffness(grid3, k3)
 
-L4 = @SVector [0.5, 1., 2., 4.]
-N4 = @SVector [32, 64, 128, 256]
-grid4 = CartesianGrid{4}(L4, N4)
+# Should throw an exception
+# DIM = 4
+# L4 = @SVector [0.5, 1., 2., 4.]
+# N4 = SVector{DIM, Int}(32, 64, 128, 256)
+# grid4 = CartesianGrid{DIM}(L4, N4)
