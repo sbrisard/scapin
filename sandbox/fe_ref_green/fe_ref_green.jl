@@ -1,13 +1,20 @@
+using LinearAlgebra: tr, UniformScaling
+
 using StaticArrays
 
 struct CartesianGrid{DIM}
-    L::SVector{DIM,Float64}
+    μ::Float64, ν::Float64, L::SVector{DIM,Float64}
     N::SVector{DIM,Int}
-    function CartesianGrid{DIM}(L::SVector{DIM,Float64}, N::SVector{DIM,Int}) where {DIM}
+    function CartesianGrid{DIM}(
+        μ::Float64,
+        ν::Float64,
+        L::SVector{DIM,Float64},
+        N::SVector{DIM,Int},
+    ) where {DIM}
         if DIM < 2 || DIM > 3
             throw(DomainError(DIM))
         end
-        new(L, N)
+        new(μ, ν, L, N)
     end
 end
 
@@ -43,47 +50,45 @@ function modal_stiffness(grid::CartesianGrid{DIM}, k::SVector{DIM,Int}) where {D
     ψ = sin.(β)
 
     if DIM == 2
-        return [
-            [h⁻¹[1] * h⁻¹[1] * φ[1] * χ[2], h⁻¹[1] * h⁻¹[2] * ψ[1] * ψ[2]],
-            [h⁻¹[1] * h⁻¹[2] * ψ[1] * ψ[2], h⁻¹[2]^2 * χ[1] * φ[2]],
+        H = [
+            h⁻¹[1] * h⁻¹[1] * φ[1] * χ[2] h⁻¹[1] * h⁻¹[2] * ψ[1] * ψ[2];
+            h⁻¹[1] * h⁻¹[2] * ψ[1] * ψ[2] h⁻¹[2]^2 * χ[1] * φ[2]
         ]
     elseif DIM == 3
-        return [
-            [
-                h⁻¹[1] * h⁻¹[1] * φ[1] * χ[2] * χ[3],
-                h⁻¹[1] * h⁻¹[2] * ψ[1] * ψ[2] * χ[3],
-                h⁻¹[1] * h⁻¹[3] * ψ[1] * χ[2] * ψ[3],
-            ],
-            [
-                h⁻¹[2] * h⁻¹[1] * ψ[1] * ψ[2] * χ[3],
-                h⁻¹[2] * h⁻¹[2] * χ[1] * φ[2] * χ[3],
-                h⁻¹[2] * h⁻¹[3] * χ[1] * ψ[2] * ψ[3],
-            ],
-            [
-                h⁻¹[3] * h⁻¹[1] * ψ[1] * χ[2] * ψ[3],
-                h⁻¹[3] * h⁻¹[2] * χ[1] * ψ[2] * ψ[3],
-                h⁻¹[3] * h⁻¹[3] * χ[1] * χ[2] * φ[3],
-            ],
+        H = [
+            h⁻¹[1] * h⁻¹[1] * φ[1] * χ[2] * χ[3]
+            h⁻¹[1] * h⁻¹[2] * ψ[1] * ψ[2] * χ[3]
+            h⁻¹[1] * h⁻¹[3] * ψ[1] * χ[2] * ψ[3];
+            h⁻¹[2] * h⁻¹[1] * ψ[1] * ψ[2] * χ[3]
+            h⁻¹[2] * h⁻¹[2] * χ[1] * φ[2] * χ[3]
+            h⁻¹[2] * h⁻¹[3] * χ[1] * ψ[2] * ψ[3];
+            h⁻¹[3] * h⁻¹[1] * ψ[1] * χ[2] * ψ[3]
+            h⁻¹[3] * h⁻¹[2] * χ[1] * ψ[2] * ψ[3]
+            h⁻¹[3] * h⁻¹[3] * χ[1] * χ[2] * φ[3]
         ]
     else
         # This should never occur
         throw(DomainError(DIM))
     end
+    grid.μ * (UniformScaling(tr(H)) + 1 / (1 - 2ν) * H)
 end
+
+μ = 1.0
+ν = 0.3
 
 DIM = 2
 L2 = @SVector [0.5, 1.0]
 N2 = SVector{DIM,Int}(32, 64)
-grid2 = CartesianGrid{DIM}(L2, N2)
-k2 = @SVector [0.0, 0.0]
+grid2 = CartesianGrid{DIM}(μ, ν, L2, N2)
+k2 = SVector{DIM,Int}(0, 0)
 B2 = modal_strain_displacement(grid2, k2)
 K2 = modal_stiffness(grid2, k2)
 
 DIM = 3
 L3 = @SVector [0.5, 1.0, 2.0]
 N3 = SVector{DIM,Int}(32, 64, 128)
-grid3 = CartesianGrid{DIM}(L3, N3)
-k3 = @SVector [0.0, 0.0]
+grid3 = CartesianGrid{DIM}(μ, ν, L3, N3)
+k3 = SVector{DIM,Int}(0, 0, 0)
 B3 = modal_strain_displacement(grid3, k3)
 K3 = modal_stiffness(grid3, k3)
 
