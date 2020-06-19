@@ -1,10 +1,8 @@
-#include <math.h>
+#include <cmath>
 
 #include <glib.h>
 
-#include <scapin/scapin.h>
-
-#include <stdio.h>
+#include <scapin/scapin.hpp>
 
 void test_grop_hooke_data(gconstpointer data) {
   const size_t dim = *((size_t *)data);
@@ -148,11 +146,11 @@ void test_grop_hooke_3d_apply() {
 }
 
 void test_grop_hooke_setup_tests() {
-  size_t *data1 = malloc(sizeof(size_t));
+  auto data1 = static_cast<size_t *>(malloc(sizeof(size_t)));
   data1[0] = 2;
   g_test_add_data_func_full("/Hooke2D/data", data1, test_grop_hooke_data, free);
 
-  size_t *data2 = malloc(sizeof(size_t));
+  auto data2 = static_cast<size_t *>(malloc(sizeof(size_t)));
   data2[0] = 3;
   g_test_add_data_func_full("/Hooke3D/data", data2, test_grop_hooke_data, free);
 

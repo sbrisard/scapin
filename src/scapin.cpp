@@ -1,10 +1,9 @@
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
 
-#include <scapin/scapin.h>
+#include <scapin/scapin.hpp>
 
 ScapinGreenOperator *scapin_grop_new() {
-  return malloc(sizeof(scapin_grop_new));
+  return static_cast<ScapinGreenOperator*>(malloc(sizeof(ScapinGreenOperator)));
 }
 
 void scapin_grop_free(ScapinGreenOperator *grop) {
@@ -56,7 +55,7 @@ ScapinGreenOperator *scapin_grop_hooke_new(size_t ndims, double mu, double nu) {
     /* TODO Return error message. */
     return NULL;
   }
-  GrOpHookeData *data = malloc(sizeof(GrOpHookeData));
+  GrOpHookeData *data = static_cast<GrOpHookeData*>(malloc(sizeof(GrOpHookeData)));
   data->mu = mu;
   data->nu = nu;
   op->data = data;

@@ -12,8 +12,6 @@
 #ifndef __FFT_UTILS_H_20201711081743__
 #define __FFT_UTILS_H_20201711081743__
 
-#include <stdlib.h>
-
 #if _WIN32
 #define DllExport __declspec(dllexport)
 #else
@@ -36,6 +34,6 @@
  * returned. Otherwise, `freq` must be a preallocated `double[n]` array, which
  * is modified in place and returned.
  */
-double *fft_helper_fftfreq(size_t n, double d, double *freq);
+DllExport double *fft_helper_fftfreq(size_t n, double d, double *freq);
 
 #endif

@@ -1,8 +1,10 @@
-#include <scapin/fft_helper.h>
+#include <cstddef>
+#include <cstdlib>
+#include <scapin/fft_helper.hpp>
 
 double *fft_helper_fftfreq(size_t n, double d, double *freq) {
   if (freq == NULL) {
-    freq = malloc(n * sizeof(double));
+    freq = static_cast<double *>(malloc(n * sizeof(double)));
   }
   size_t const m = n / 2;
   size_t const rem = n % 2;
