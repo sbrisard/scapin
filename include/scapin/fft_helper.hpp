@@ -18,6 +18,8 @@
 #define DllExport
 #endif
 
+#include <cstddef>
+
 /**
  * @brief Return the Discrete Fourier Transform sample frequencies.
  *
@@ -34,6 +36,6 @@
  * returned. Otherwise, `freq` must be a preallocated `double[n]` array, which
  * is modified in place and returned.
  */
-DllExport double *fft_helper_fftfreq(size_t n, double d, double *freq);
+DllExport double *fft_helper_fftfreq(std::size_t n, double d, double *freq);
 
 #endif
