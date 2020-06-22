@@ -3,18 +3,18 @@
 #include "catch2/catch.hpp"
 #include <scapin/scapin.hpp>
 
-void test_grop_hooke_data(size_t dim) {
-  const size_t isize = (dim * (dim + 1)) / 2;
+template<size_t DIM>
+void test_grop_hooke_data() {
+  const size_t isize = (DIM * (DIM + 1)) / 2;
   const size_t osize = isize;
   const double mu = 10.;
   const double nu = 0.3;
 
-  ScapinGreenOperator *op = scapin_grop_hooke_new(dim, mu, nu);
-  REQUIRE(op->type->dim == dim);
-  REQUIRE(op->type->isize == isize);
-  REQUIRE(op->type->osize == osize);
-  REQUIRE(scapin_grop_hooke_mu(op) == mu);
-  REQUIRE(scapin_grop_hooke_nu(op) == nu);
+  Hooke<DIM> hooke{mu, nu};
+  REQUIRE(hooke.isize == isize);
+  REQUIRE(hooke.osize == osize);
+  REQUIRE(hooke.mu == mu);
+  REQUIRE(hooke.nu == nu);
 }
 
 void grop_hooke_matrix(size_t dim, double *n, double nu, double *out) {
@@ -62,7 +62,7 @@ void test_grop_hooke_2d_apply() {
   double const delta_theta = 2 * M_PI / (double)num_theta;
   double const theta_max = (num_theta - 0.5) * delta_theta;
 
-  ScapinGreenOperator *gamma = scapin_grop_hooke_new(dim, mu, nu);
+  Hooke<dim> gamma{mu, nu};
   double exp[sym * sym];
   double act[sym * sym];
   double tau[sym];
@@ -77,7 +77,7 @@ void test_grop_hooke_2d_apply() {
                               k_norm[i] * n[2]};
       for (size_t col = 0; col < sym; col++) {
         tau[col] = 1.;
-        gamma->type->apply(gamma, k_vec, tau, eps);
+        gamma.apply(k_vec, tau, eps);
         for (size_t row = 0; row < sym; row++) {
           act[col + sym * row] = eps[row];
         }
@@ -89,7 +89,6 @@ void test_grop_hooke_2d_apply() {
       }
     }
   }
-  scapin_grop_free(gamma);
 }
 
 void test_grop_hooke_3d_apply() {
@@ -108,7 +107,7 @@ void test_grop_hooke_3d_apply() {
   double const delta_phi = 2 * M_PI / (double)num_phi;
   double const phi_max = (num_phi - 0.5) * delta_phi;
 
-  ScapinGreenOperator *gamma = scapin_grop_hooke_new(dim, mu, nu);
+  Hooke<dim> gamma{mu, nu};
   double exp[sym * sym];
   double act[sym * sym];
   double tau[sym];
@@ -127,7 +126,7 @@ void test_grop_hooke_3d_apply() {
                                 k_norm[i] * n[2]};
         for (size_t col = 0; col < sym; col++) {
           tau[col] = 1.;
-          gamma->type->apply(gamma, k_vec, tau, eps);
+          gamma.apply(k_vec, tau, eps);
           for (size_t row = 0; row < sym; row++) {
             act[col + sym * row] = eps[row];
           }
@@ -139,17 +138,16 @@ void test_grop_hooke_3d_apply() {
       }
     }
   }
-  scapin_grop_free(gamma);
 }
 
 TEST_CASE("Continuous Green operator") {
   SECTION("Hooke model") {
     SECTION("Data") {
       SECTION("2D") {
-        test_grop_hooke_data(2);
+        test_grop_hooke_data<2>();
       }
       SECTION("3D") {
-        test_grop_hooke_data(3);
+        test_grop_hooke_data<3>();
       }
     }
     SECTION("Apply") {
