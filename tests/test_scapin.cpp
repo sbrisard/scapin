@@ -1,22 +1,20 @@
 #include <cmath>
 
-#include <glib.h>
-
+#include "catch2/catch.hpp"
 #include <scapin/scapin.hpp>
 
-void test_grop_hooke_data(gconstpointer data) {
-  const size_t dim = *((size_t *)data);
+void test_grop_hooke_data(size_t dim) {
   const size_t isize = (dim * (dim + 1)) / 2;
   const size_t osize = isize;
   const double mu = 10.;
   const double nu = 0.3;
 
   ScapinGreenOperator *op = scapin_grop_hooke_new(dim, mu, nu);
-  g_assert_cmpint(op->type->dim, ==, dim);
-  g_assert_cmpint(op->type->isize, ==, isize);
-  g_assert_cmpint(op->type->osize, ==, osize);
-  g_assert_cmpfloat(scapin_grop_hooke_mu(op), ==, mu);
-  g_assert_cmpfloat(scapin_grop_hooke_nu(op), ==, nu);
+  REQUIRE(op->type->dim == dim);
+  REQUIRE(op->type->isize == isize);
+  REQUIRE(op->type->osize == osize);
+  REQUIRE(scapin_grop_hooke_mu(op) == mu);
+  REQUIRE(scapin_grop_hooke_nu(op) == nu);
 }
 
 void grop_hooke_matrix(size_t dim, double *n, double nu, double *out) {
@@ -87,7 +85,7 @@ void test_grop_hooke_2d_apply() {
       }
       for (size_t ijkl = 0; ijkl < sym * sym; ijkl++) {
         double const err = fabs(act[ijkl] - exp[ijkl]);
-        g_assert_cmpfloat(err, <=, 1e-12 * fabs(exp[ijkl]) + 1e-12);
+        REQUIRE(act[ijkl] == Approx(exp[ijkl]).epsilon(1e-12).margin(1e-12));
       }
     }
   }
@@ -136,8 +134,7 @@ void test_grop_hooke_3d_apply() {
           tau[col] = 0.;
         }
         for (size_t ijkl = 0; ijkl < sym * sym; ijkl++) {
-          double const err = fabs(act[ijkl] - exp[ijkl]);
-          g_assert_cmpfloat(err, <=, 1e-12 * fabs(exp[ijkl]) + 1e-12);
+          REQUIRE(act[ijkl] == Approx(exp[ijkl]).epsilon(1e-12).margin(1e-12));
         }
       }
     }
@@ -145,21 +142,19 @@ void test_grop_hooke_3d_apply() {
   scapin_grop_free(gamma);
 }
 
-void test_grop_hooke_setup_tests() {
-  auto data1 = static_cast<size_t *>(malloc(sizeof(size_t)));
-  data1[0] = 2;
-  g_test_add_data_func_full("/Hooke2D/data", data1, test_grop_hooke_data, free);
-
-  auto data2 = static_cast<size_t *>(malloc(sizeof(size_t)));
-  data2[0] = 3;
-  g_test_add_data_func_full("/Hooke3D/data", data2, test_grop_hooke_data, free);
-
-  g_test_add_func("/Hoole2D/apply", test_grop_hooke_2d_apply);
-  g_test_add_func("/Hooke3D/apply", test_grop_hooke_3d_apply);
-}
-
-int main(int argc, char **argv) {
-  g_test_init(&argc, &argv, NULL);
-  test_grop_hooke_setup_tests();
-  return g_test_run();
+TEST_CASE("Continuous Green operator") {
+  SECTION("Hooke model") {
+    SECTION("Data") {
+      SECTION("2D") {
+        test_grop_hooke_data(2);
+      }
+      SECTION("3D") {
+        test_grop_hooke_data(3);
+      }
+    }
+    SECTION("Apply") {
+      SECTION("2D") { test_grop_hooke_2d_apply(); }
+      SECTION("3D") { test_grop_hooke_3d_apply(); }
+    }
+  }
 }
