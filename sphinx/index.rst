@@ -12,6 +12,7 @@ Welcome to scapin's documentation!
 
    installation
    theory
+   nomenclature
    api
 
 Indices and tables

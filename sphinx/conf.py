@@ -67,3 +67,7 @@ breathe_projects_source = {
 breathe_doxygen_config_options = {"GENERATE_TODOLIST": "YES"}
 
 todo_include_todos = True
+
+mathjax_config = {
+    "TeX": {"Macros": {"cellindices": r"{\mathcal P}", "tuple": [r"{\mathsf{#1}}", 1]}}
+}
