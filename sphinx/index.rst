@@ -11,8 +11,6 @@ Welcome to scapin's documentation!
    :caption: Contents:
 
    installation
-   theory
-   nomenclature
    api
 
 Indices and tables
