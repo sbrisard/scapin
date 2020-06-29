@@ -10,18 +10,30 @@
 template <size_t DIM>
 class Hooke {
  public:
+  static const size_t isize;
+  static const size_t osize;
+
   const double mu;
   const double nu;
-  const size_t isize;
-  const size_t osize;
-  Hooke(const double mu, const double nu)
-      : mu(mu), nu(nu), isize((DIM * (DIM + 1)) / 2), osize(isize) {}
+  Hooke(const double mu, const double nu) : mu(mu), nu(nu) {}
 
   void apply(const double* k, const double* tau, double* out);
 };
 
+template <>
+const size_t Hooke<2>::isize = 3;
+
+template <>
+const size_t Hooke<2>::osize = 3;
+
+template <>
+const size_t Hooke<3>::isize = 6;
+
+template <>
+const size_t Hooke<3>::osize = 6;
+
 template <size_t DIM>
-void Hooke<DIM>::apply(const double *k, const double *tau, double *out) {
+void Hooke<DIM>::apply(const double* k, const double* tau, double* out) {
   if constexpr (DIM == 2) {
     double const k2 = k[0] * k[0] + k[1] * k[1];
     double tau_k[] = {tau[0] * k[0] + M_SQRT1_2 * tau[2] * k[1],
