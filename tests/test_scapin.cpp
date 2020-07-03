@@ -1,41 +1,41 @@
 #include <cmath>
 
 #include "catch2/catch.hpp"
-#include <scapin/scapin.hpp>
+#include "scapin/hooke.hpp"
 
-template<size_t DIM>
-void test_grop_hooke_data() {
-  const size_t isize = (DIM * (DIM + 1)) / 2;
-  const size_t osize = isize;
+template <size_t DIM>
+void test_data() {
   const double mu = 10.;
   const double nu = 0.3;
 
   Hooke<DIM> hooke{mu, nu};
-  REQUIRE(hooke.isize == isize);
-  REQUIRE(hooke.osize == osize);
+  REQUIRE(hooke.isize == (DIM * (DIM + 1)) / 2);
+  REQUIRE(hooke.osize == hooke.osize);
   REQUIRE(hooke.mu == mu);
   REQUIRE(hooke.nu == nu);
 }
 
-void grop_hooke_matrix(size_t dim, double *n, double nu, double *out) {
-  size_t const sym = (dim * (dim + 1)) / 2;
-  size_t const ij2i_2d[] = {0, 1, 0};
-  size_t const ij2i_3d[] = {0, 1, 2, 1, 2, 0};
-  size_t const ij2j_2d[] = {0, 1, 1};
-  size_t const ij2j_3d[] = {0, 1, 2, 2, 0, 1};
-  size_t const *ij2i = (dim == 2) ? ij2i_2d : ij2i_3d;
-  size_t const *ij2j = (dim == 2) ? ij2j_2d : ij2j_3d;
+template <size_t DIM>
+void green_operator_matrix(double *n, double nu, double *out) {
+  constexpr size_t sym = (DIM * (DIM + 1)) / 2;
+  constexpr size_t const ij2i_2d[] = {0, 1, 0};
+  constexpr size_t const ij2j_2d[] = {0, 1, 1};
+  constexpr size_t const ij2i_3d[] = {0, 1, 2, 1, 2, 0};
+  constexpr size_t const ij2j_3d[] = {0, 1, 2, 2, 0, 1};
+
+  auto const & ij2i = DIM == 2 ? ij2i_2d : ij2i_3d;
+  auto const & ij2j = DIM == 2 ? ij2j_2d : ij2j_3d;
 
   double *gamma_ijkl = out;
 
   for (size_t ij = 0; ij < sym; ij++) {
     size_t const i = ij2i[ij];
     size_t const j = ij2j[ij];
-    double const w_ij = ij < dim ? 1. : M_SQRT2;
+    double const w_ij = ij < DIM ? 1. : M_SQRT2;
     for (size_t kl = 0; kl < sym; kl++, gamma_ijkl++) {
       size_t const k = ij2i[kl];
       size_t const l = ij2j[kl];
-      double const w_kl = kl < dim ? 1. : M_SQRT2;
+      double const w_kl = kl < DIM ? 1. : M_SQRT2;
       double const delta_ik = i == k ? 1. : 0.;
       double const delta_il = i == l ? 1. : 0.;
       double const delta_jk = j == k ? 1. : 0.;
@@ -50,8 +50,8 @@ void grop_hooke_matrix(size_t dim, double *n, double nu, double *out) {
 }
 
 void test_grop_hooke_2d_apply() {
-  size_t const dim = 2;
-  size_t const sym = 3;
+  constexpr size_t const dim = 2;
+  constexpr size_t const sym = 3;
   size_t const num_theta = 20;
   double const mu = 1.0;
   double const nu = 0.3;
@@ -71,7 +71,7 @@ void test_grop_hooke_2d_apply() {
   for (double theta = 0; theta < theta_max; theta += delta_theta) {
     n[0] = sin(theta);
     n[1] = cos(theta);
-    grop_hooke_matrix(dim, n, nu, exp);
+    green_operator_matrix<dim>(n, nu, exp);
     for (size_t i = 0; i < num_k_norms; i++) {
       double const k_vec[] = {k_norm[i] * n[0], k_norm[i] * n[1],
                               k_norm[i] * n[2]};
@@ -92,8 +92,8 @@ void test_grop_hooke_2d_apply() {
 }
 
 void test_grop_hooke_3d_apply() {
-  size_t const dim = 3;
-  size_t const sym = 6;
+  constexpr size_t const dim = 3;
+  constexpr size_t const sym = 6;
   size_t const num_theta = 10;
   size_t const num_phi = 20;
   double const mu = 1.0;
@@ -120,7 +120,7 @@ void test_grop_hooke_3d_apply() {
       n[0] = sin_theta * cos(phi);
       n[1] = sin_theta * sin(phi);
       n[2] = cos_theta;
-      grop_hooke_matrix(dim, n, nu, exp);
+      green_operator_matrix<dim>(n, nu, exp);
       for (size_t i = 0; i < num_k_norms; i++) {
         double const k_vec[] = {k_norm[i] * n[0], k_norm[i] * n[1],
                                 k_norm[i] * n[2]};
@@ -143,12 +143,8 @@ void test_grop_hooke_3d_apply() {
 TEST_CASE("Continuous Green operator") {
   SECTION("Hooke model") {
     SECTION("Data") {
-      SECTION("2D") {
-        test_grop_hooke_data<2>();
-      }
-      SECTION("3D") {
-        test_grop_hooke_data<3>();
-      }
+      SECTION("2D") { test_data<2>(); }
+      SECTION("3D") { test_data<3>(); }
     }
     SECTION("Apply") {
       SECTION("2D") { test_grop_hooke_2d_apply(); }
