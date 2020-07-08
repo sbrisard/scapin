@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cmath>
+#include <iostream>
 
 #include "catch2/catch.hpp"
 #include "scapin/hooke.hpp"
@@ -117,7 +118,7 @@ void test_grop_hooke_apply() {
   Hooke<DIM> gamma{mu, nu};
   double exp[sym * sym];
   double act[sym * sym];
-  double tau[sym];
+  double tau[sym] = {0.};
   double eps[sym];
 
   size_t const num_theta = DIM == 2 ? 20 : 10;
