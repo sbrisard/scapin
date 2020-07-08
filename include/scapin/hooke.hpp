@@ -38,8 +38,8 @@ void Hooke<DIM>::apply(const double* k, const double* tau, double* out) {
     double tau_k[] = {tau[0] * k[0] + M_SQRT1_2 * tau[2] * k[1],
                       tau[1] * k[1] + M_SQRT1_2 * tau[2] * k[0]};
     double const n_tau_n = (k[0] * tau_k[0] + k[1] * tau_k[1]) / k2;
-    double const const1 = n_tau_n / (1. - this->nu);
-    double const const2 = 1. / (2. * this->mu * k2);
+    double const const1 = n_tau_n / (1. - nu);
+    double const const2 = 1. / (2. * mu * k2);
     out[0] = const2 * (k[0] * (2. * tau_k[0] - const1 * k[0]));
     out[1] = const2 * (k[1] * (2. * tau_k[1] - const1 * k[1]));
     double const const3 = M_SQRT2 * const2;
@@ -54,8 +54,8 @@ void Hooke<DIM>::apply(const double* k, const double* tau, double* out) {
         tau[2] * k[2] + M_SQRT1_2 * (tau[4] * k[0] + tau[3] * k[1])};
     double const n_tau_n =
         (k[0] * tau_k[0] + k[1] * tau_k[1] + k[2] * tau_k[2]) / k2;
-    double const const1 = n_tau_n / (1. - this->nu);
-    double const const2 = 1. / (2. * this->mu * k2);
+    double const const1 = n_tau_n / (1. - nu);
+    double const const2 = 1. / (2. * mu * k2);
     out[0] = const2 * (k[0] * (2. * tau_k[0] - const1 * k[0]));
     out[1] = const2 * (k[1] * (2. * tau_k[1] - const1 * k[1]));
     out[2] = const2 * (k[2] * (2. * tau_k[2] - const1 * k[2]));
