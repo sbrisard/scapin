@@ -1,6 +1,7 @@
 #ifndef __SCAPIN_HOOKE_HPP_20200701061850__
 #define __SCAPIN_HOOKE_HPP_20200701061850__
 
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "_dllexport.hpp"

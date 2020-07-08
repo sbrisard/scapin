@@ -1,3 +1,6 @@
+#define _USE_MATH_DEFINES
+
+#include <array>
 #include <cmath>
 
 #include "catch2/catch.hpp"
