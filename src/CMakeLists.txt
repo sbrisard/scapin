@@ -6,7 +6,7 @@ add_library(scapin SHARED
         ../include/scapin/scapin.hpp
         ../include/scapin/fft_helper.hpp
         ../include/scapin/hooke.hpp
-        ../include/scapin/_dllexport.hpp)
+        ../include/scapin/core.hpp)
 
 target_include_directories(scapin PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}../include>

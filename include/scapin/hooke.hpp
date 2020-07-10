@@ -4,7 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "_dllexport.hpp"
+#include "core.hpp"
 
 template <size_t DIM>
 class Hooke {

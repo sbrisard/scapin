@@ -3,7 +3,7 @@ add_executable(test_scapin
         test_scapin.cpp
         test_fft_helper.cpp
         ../include/scapin/hooke.hpp
-        ../include/scapin/_dllexport.hpp)
+        ../include/scapin/core.hpp)
 
 target_include_directories(test_scapin PUBLIC ../include)
 
