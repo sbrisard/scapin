@@ -22,13 +22,16 @@ void test_data() {
 template <size_t DIM>
 void green_operator_matrix(double *n, double nu, double *out) {
   constexpr size_t sym = (DIM * (DIM + 1)) / 2;
-  constexpr size_t const ij2i_2d[] = {0, 1, 0};
-  constexpr size_t const ij2j_2d[] = {0, 1, 1};
-  constexpr size_t const ij2i_3d[] = {0, 1, 2, 1, 2, 0};
-  constexpr size_t const ij2j_3d[] = {0, 1, 2, 2, 0, 1};
 
-  auto const &ij2i = DIM == 2 ? ij2i_2d : ij2i_3d;
-  auto const &ij2j = DIM == 2 ? ij2j_2d : ij2j_3d;
+  constexpr auto ij2i = ([]() {
+    if constexpr (DIM == 2) return std::array<double, 3>({0, 1, 0});
+    if constexpr (DIM == 3) return std::array<double, 6>({0, 1, 2, 1, 2, 0});
+  })();
+
+  constexpr auto ij2j = ([]() {
+    if constexpr (DIM == 2) return std::array<size_t, 3>({0, 1, 1});
+    if constexpr (DIM == 3) return std::array<size_t, 6>({0, 1, 2, 2, 0, 1});
+  })();
 
   double *gamma_ijkl = out;
 
