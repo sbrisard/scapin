@@ -33,6 +33,7 @@
 
 \usepackage{stmaryrd}
 
+\newcommand{\cellindices}{\mathcal P}
 \DeclareMathOperator{\conj}{conj}
 \DeclareMathOperator{\curl}{\textbf{rot}}
 \newcommand{\D}{{\mathrm d}}
@@ -67,10 +68,31 @@
 \newcommand{\stresses}{\mathcal S}
 \newcommand{\strains}{\mathcal E}
 \newcommand{\todo}[1]{\color{red}TODO~---~#1\color{black}}
-
+\newcommand{\tuple}[1]{\mathsf{#1}}
 
 \begin{document}
 \maketitle
+
+\chapter{Nomenclature}
+\label{cha:20204224074257}
+
+\begin{itemize}
+\item \(d\): dimension of the physical space (typically \(d=2, 3\))
+\item \(\Omega\): \(d\)-dimensional unit-cell
+\item \(L_1,\ldots, L_d\): dimensions of the unit-cell:
+  \(\Omega=(0, L_1)\times(0, L_2)\times\cdots\times(0, L_d)\)
+\item \(\lvert\Omega\rvert=L_1L_2\cdots L_d\): volume of the unit-cell
+\item \(\tuple{n}\): \(d\)-dimensional tuple of integers
+  \(\tuple{n}=(n_1, n_2, \ldots, n_d)\)
+\item \(\tuple{N}=(N_1, N_2, \ldots, N_d)\): size of the simulation grid
+\item \(\lvert N\rvert=N_1N_2\cdots N_d\): total number of cells
+\item \(h_i=L_i/N_i\): size of the cells (\(i=1, \ldots, d\))
+\item
+  \(\cellindices=\{0, \ldots, N_1-1\}\times\{0, \ldots, N_2-1\}\times\{0,
+  \ldots, N_3-1\}\): set of cell indices
+\item \(\Omega_{\tuple{p}}\): cells of the simulation grid
+  (\(\tuple{p}\in\cellindices\))
+\end{itemize}
 
 \chapter{Continuous Green operators}
 \label{chap:202002060528}
