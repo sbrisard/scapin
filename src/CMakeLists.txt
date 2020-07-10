@@ -19,3 +19,9 @@ endif ()
 
 install(TARGETS scapin LIBRARY DESTINATION lib)
 install(DIRECTORY ../include/scapin DESTINATION include)
+
+add_executable(scapin_demo scapin_demo.cpp)
+target_include_directories(scapin_demo PRIVATE ../include)
+if (MATH_LIBRARY)
+    target_link_libraries(scapin_demo ${MATH_LIBRARY})
+endif ()
