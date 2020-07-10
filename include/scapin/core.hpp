@@ -7,4 +7,7 @@
 #define DllExport
 #endif
 
+template <typename T>
+std::size_t dim();
+
 #endif
