@@ -1,7 +1,4 @@
-#ifndef __SCAPIN_HPP_20200701061740__
-#define __SCAPIN_HPP_20200701061740__
+#pragma once
 
 #include "core.hpp"
 #include "hooke.hpp"
-
-#endif

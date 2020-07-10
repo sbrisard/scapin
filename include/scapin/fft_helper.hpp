@@ -8,9 +8,7 @@
  * <https://docs.scipy.org/doc/numpy/reference/routines.fft.html#helper-routines>
  *
  */
-
-#ifndef __FFT_UTILS_H_20201711081743__
-#define __FFT_UTILS_H_20201711081743__
+#pragma once
 
 #if _WIN32
 #define DllExport __declspec(dllexport)
@@ -38,4 +36,3 @@
  */
 DllExport double *fft_helper_fftfreq(std::size_t n, double d, double *freq);
 
-#endif

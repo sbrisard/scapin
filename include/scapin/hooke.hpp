@@ -1,5 +1,4 @@
-#ifndef __SCAPIN_HOOKE_HPP_20200701061850__
-#define __SCAPIN_HOOKE_HPP_20200701061850__
+#pragma once
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -78,5 +77,3 @@ template <>
 size_t dim<Hooke<3>>() {
   return 3;
 }
-
-#endif
