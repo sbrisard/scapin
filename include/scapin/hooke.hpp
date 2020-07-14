@@ -77,3 +77,9 @@ template <>
 size_t dim<Hooke<3>>() {
   return 3;
 }
+
+template <size_t DIM>
+std::ostream& operator<<(std::ostream& os, const Hooke<DIM>& hooke) {
+  return os << "Hooke<" << DIM << ">(mu=" << hooke.mu << ", "
+            << "nu=" << hooke.nu << ")";
+}
