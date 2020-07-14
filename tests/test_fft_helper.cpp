@@ -1,7 +1,7 @@
-#include <scapin/fft_helper.hpp>
+#include "scapin/fft_helper.hpp"
 #include "catch2/catch.hpp"
 
-void test_fftfreq(std::size_t n, double d, bool inplace, int cycles[]) {
+void test_fftfreq(size_t n, double d, bool inplace, int cycles[]) {
   double *out = inplace ? new double[n] : nullptr;
   double *act = fft_helper_fftfreq(n, d, out);
   if (inplace) {
@@ -14,7 +14,7 @@ void test_fftfreq(std::size_t n, double d, bool inplace, int cycles[]) {
   delete [] out;
 }
 
-void test_fftfreq(std::size_t n, double d, int cycles[]) {
+void test_fftfreq(size_t n, double d, int cycles[]) {
   SECTION("in-place output") { test_fftfreq(n, d, true, cycles); }
   SECTION("out-of-place output") { test_fftfreq(n, d, false, cycles); }
 }
