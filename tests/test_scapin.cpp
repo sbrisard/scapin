@@ -20,18 +20,23 @@ void test_data() {
 }
 
 template <size_t DIM>
+constexpr auto _ij2i() {
+  if constexpr (DIM == 2) return std::array<size_t, 3>{0, 1, 0};
+  if constexpr (DIM == 3) return std::array<size_t, 6>{0, 1, 2, 1, 2, 0};
+}
+
+template <size_t DIM>
+constexpr auto _ij2j() {
+  if constexpr (DIM == 2) return std::array<size_t, 3>{0, 1, 1};
+  if constexpr (DIM == 3) return std::array<size_t, 6>{0, 1, 2, 2, 0, 1};
+}
+
+template <size_t DIM>
 void green_operator_matrix(double *n, double nu, double *out) {
   constexpr size_t sym = (DIM * (DIM + 1)) / 2;
 
-  constexpr auto ij2i = ([]() {
-    if constexpr (DIM == 2) return std::array<double, 3>({0, 1, 0});
-    if constexpr (DIM == 3) return std::array<double, 6>({0, 1, 2, 1, 2, 0});
-  })();
-
-  constexpr auto ij2j = ([]() {
-    if constexpr (DIM == 2) return std::array<size_t, 3>({0, 1, 1});
-    if constexpr (DIM == 3) return std::array<size_t, 6>({0, 1, 2, 2, 0, 1});
-  })();
+  auto ij2i = _ij2i<DIM>();
+  auto ij2j = _ij2j<DIM>();
 
   double *gamma_ijkl = out;
 
