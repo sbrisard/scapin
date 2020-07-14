@@ -8,8 +8,9 @@
 template <size_t DIM>
 class Hooke {
  public:
-  static const size_t isize;
-  static const size_t osize;
+  static constexpr size_t dim = DIM;
+  static constexpr size_t isize = (DIM * (DIM + 1)) / 2;
+  static constexpr size_t osize = (DIM * (DIM + 1)) / 2;
 
   const double mu;
   const double nu;
@@ -17,18 +18,6 @@ class Hooke {
 
   void apply(const double* k, const double* tau, double* out);
 };
-
-template <>
-const size_t Hooke<2>::isize = 3;
-
-template <>
-const size_t Hooke<2>::osize = 3;
-
-template <>
-const size_t Hooke<3>::isize = 6;
-
-template <>
-const size_t Hooke<3>::osize = 6;
 
 template <size_t DIM>
 void Hooke<DIM>::apply(const double* k, const double* tau, double* out) {
