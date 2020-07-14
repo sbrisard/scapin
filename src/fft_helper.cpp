@@ -1,6 +1,8 @@
 #include "scapin/fft_helper.hpp"
 
-double *fft_helper_fftfreq(size_t n, double d, double *freq) {
+namespace fft_helper {
+
+double *fftfreq(size_t n, double d, double *freq) {
   if (freq == nullptr) {
     freq = new double[n];
   }
@@ -15,3 +17,21 @@ double *fft_helper_fftfreq(size_t n, double d, double *freq) {
   }
   return freq;
 }
+
+double *fftwavnum(size_t n, double L, double *k) {
+  if (k == nullptr) {
+    k = new double[n];
+  }
+  size_t const m = n / 2;
+  size_t const rem = n % 2;
+  double const delta_k = 2 * M_PI / (n * L);
+  for (size_t i = 0; i < m + rem; i++) {
+    k[i] = delta_k * i;
+  }
+  for (size_t i = m + rem; i < n; i++) {
+    k[i] = -delta_k * (n - i);
+  }
+  return k;
+}
+
+}  // namespace fft_helper
