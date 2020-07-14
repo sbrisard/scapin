@@ -13,7 +13,7 @@
 #include "core.hpp"
 
 /**
- * @brief Return the Discrete Fourier Transform sample frequencies.
+ * Return the Discrete Fourier Transform sample frequencies.
  *
  * The returned float array `freq` contains the frequency bin centers in cycles
  * per unit of the sample spacing (with zero at the start). For instance, if the
