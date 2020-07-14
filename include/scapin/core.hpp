@@ -7,4 +7,4 @@
 #endif
 
 template <typename T>
-size_t dim();
+size_t dimensionality();

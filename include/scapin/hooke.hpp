@@ -58,12 +58,12 @@ void Hooke<DIM>::apply(const double* k, const double* tau, double* out) {
 }
 
 template <>
-size_t dim<Hooke<2>>() {
+constexpr size_t dimensionality<Hooke<2>>() {
   return 2;
 }
 
 template <>
-size_t dim<Hooke<3>>() {
+constexpr size_t dimensionality<Hooke<3>>() {
   return 3;
 }
 
