@@ -13,6 +13,7 @@ class Hooke {
   static constexpr size_t dim = DIM;
   static constexpr size_t isize = (DIM * (DIM + 1)) / 2;
   static constexpr size_t osize = (DIM * (DIM + 1)) / 2;
+  static constexpr T zero{0};  // This is used to retrieve the data type
 
   const double mu;
   const double nu;
