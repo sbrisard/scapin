@@ -12,7 +12,7 @@ void test_data() {
   const double mu = 10.;
   const double nu = 0.3;
 
-  Hooke<DIM> hooke{mu, nu};
+  Hooke<double, DIM> hooke{mu, nu};
   REQUIRE(hooke.isize == (DIM * (DIM + 1)) / 2);
   REQUIRE(hooke.osize == hooke.osize);
   REQUIRE(hooke.mu == mu);
@@ -123,7 +123,7 @@ void test_grop_hooke_apply() {
 
   std::array<double, 3> k_norm = {1.2, 3.4, 5.6};
 
-  Hooke<DIM> gamma{mu, nu};
+  Hooke<double, DIM> gamma{mu, nu};
   double exp[sym * sym];
   double act[sym * sym];
   double tau[sym] = {0.};
