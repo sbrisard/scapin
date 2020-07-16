@@ -18,13 +18,13 @@ class Hooke {
   const double nu;
   Hooke(const double mu, const double nu) : mu(mu), nu(nu) {}
 
-  void apply(double kx, double ky, const T* tau, T* out);
-  void apply(double kx, double ky, double kz, const T* tau, T* out);
-  void apply(const double* k, const T* tau, T* out);
+  void apply(double kx, double ky, const T* tau, T* out) const;
+  void apply(double kx, double ky, double kz, const T* tau, T* out) const;
+  void apply(const double* k, const T* tau, T* out) const;
 };
 
 template <typename T, size_t DIM>
-void Hooke<T, DIM>::apply(double kx, double ky, const T* tau, T* out) {
+void Hooke<T, DIM>::apply(double kx, double ky, const T* tau, T* out) const {
   static_assert(DIM == 2, "should only be called when DIM == 2");
   const double k2 = kx * kx + ky * ky;
   const double tau_k_x = tau[0] * kx + M_SQRT1_2 * tau[2] * ky;
@@ -40,7 +40,7 @@ void Hooke<T, DIM>::apply(double kx, double ky, const T* tau, T* out) {
 
 template <typename T, size_t DIM>
 void Hooke<T, DIM>::apply(double kx, double ky, double kz, const T* tau,
-                          T* out) {
+                          T* out) const {
   static_assert(DIM == 3, "should only be called when DIM == 3");
   const double k2 = kx * kx + ky * ky + kz * kz;
   const double tau_k_x = tau[0] * kx + M_SQRT1_2 * (tau[5] * ky + tau[4] * kz);
@@ -59,7 +59,7 @@ void Hooke<T, DIM>::apply(double kx, double ky, double kz, const T* tau,
 }
 
 template <typename T, size_t DIM>
-void Hooke<T, DIM>::apply(const double* k, const T* tau, T* out) {
+void Hooke<T, DIM>::apply(const double* k, const T* tau, T* out) const {
   if constexpr (DIM == 2) apply(k[0], k[1], tau, out);
   if constexpr (DIM == 3) apply(k[0], k[1], k[2], tau, out);
 }
