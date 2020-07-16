@@ -26,15 +26,15 @@ class Hooke {
 template <typename T, size_t DIM>
 void Hooke<T, DIM>::apply(double kx, double ky, const T* tau, T* out) const {
   static_assert(DIM == 2, "should only be called when DIM == 2");
-  const double k2 = kx * kx + ky * ky;
-  const double tau_k_x = tau[0] * kx + M_SQRT1_2 * tau[2] * ky;
-  const double tau_k_y = tau[1] * ky + M_SQRT1_2 * tau[2] * kx;
-  const double n_tau_n = (kx * tau_k_x + ky * tau_k_y) / k2;
-  const double const1 = n_tau_n / (1. - nu);
-  const double const2 = 1. / (2. * mu * k2);
+  auto k2 = kx * kx + ky * ky;
+  auto tau_k_x = tau[0] * kx + M_SQRT1_2 * tau[2] * ky;
+  auto tau_k_y = tau[1] * ky + M_SQRT1_2 * tau[2] * kx;
+  auto n_tau_n = (kx * tau_k_x + ky * tau_k_y) / k2;
+  auto const1 = n_tau_n / (1. - nu);
+  auto const2 = 1. / (2. * mu * k2);
   out[0] = const2 * (kx * (2. * tau_k_x - const1 * kx));
   out[1] = const2 * (ky * (2. * tau_k_y - const1 * ky));
-  const double const3 = M_SQRT2 * const2;
+  auto const3 = M_SQRT2 * const2;
   out[2] = const3 * (kx * tau_k_y + ky * tau_k_x - const1 * kx * ky);
 }
 
@@ -42,17 +42,17 @@ template <typename T, size_t DIM>
 void Hooke<T, DIM>::apply(double kx, double ky, double kz, const T* tau,
                           T* out) const {
   static_assert(DIM == 3, "should only be called when DIM == 3");
-  const double k2 = kx * kx + ky * ky + kz * kz;
-  const double tau_k_x = tau[0] * kx + M_SQRT1_2 * (tau[5] * ky + tau[4] * kz);
-  const double tau_k_y = tau[1] * ky + M_SQRT1_2 * (tau[5] * kx + tau[3] * kz);
-  const double tau_k_z = tau[2] * kz + M_SQRT1_2 * (tau[4] * kx + tau[3] * ky);
-  const double n_tau_n = (kx * tau_k_x + ky * tau_k_y + kz * tau_k_z) / k2;
-  const double const1 = n_tau_n / (1. - nu);
-  const double const2 = 1. / (2. * mu * k2);
+  auto k2 = kx * kx + ky * ky + kz * kz;
+  auto tau_k_x = tau[0] * kx + M_SQRT1_2 * (tau[5] * ky + tau[4] * kz);
+  auto tau_k_y = tau[1] * ky + M_SQRT1_2 * (tau[5] * kx + tau[3] * kz);
+  auto tau_k_z = tau[2] * kz + M_SQRT1_2 * (tau[4] * kx + tau[3] * ky);
+  auto n_tau_n = (kx * tau_k_x + ky * tau_k_y + kz * tau_k_z) / k2;
+  auto const1 = n_tau_n / (1. - nu);
+  auto const2 = 1. / (2. * mu * k2);
   out[0] = const2 * (kx * (2. * tau_k_x - const1 * kx));
   out[1] = const2 * (ky * (2. * tau_k_y - const1 * ky));
   out[2] = const2 * (kz * (2. * tau_k_z - const1 * kz));
-  double const const3 = M_SQRT2 * const2;
+  auto const const3 = M_SQRT2 * const2;
   out[3] = const3 * (ky * tau_k_z + kz * tau_k_y - const1 * ky * kz);
   out[4] = const3 * (kz * tau_k_x + kx * tau_k_z - const1 * kz * kx);
   out[5] = const3 * (kx * tau_k_y + ky * tau_k_x - const1 * kx * ky);
