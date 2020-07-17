@@ -1,5 +1,8 @@
 build
 cmake-build-debug
 cmake-build-release
-*.kdev4
+*.egg-info
 .idea
+*.kdev4
+__pycache__
+*.pyd
