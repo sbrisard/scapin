@@ -19,6 +19,13 @@ class Hooke {
   const double nu;
   Hooke(const double mu, const double nu) : mu(mu), nu(nu) {}
 
+  std::string repr() const {
+    std::ostringstream stream;
+    stream << "Hooke<" << typeid(T).name() << "," << DIM << ">(mu=" << mu << ","
+           << "nu=" << nu << ")";
+    return stream.str();
+  }
+
   void apply(double kx, double ky, const T* tau, T* out) const;
   void apply(double kx, double ky, double kz, const T* tau, T* out) const;
   void apply(const double* k, const T* tau, T* out) const;
@@ -67,7 +74,5 @@ void Hooke<T, DIM>::apply(const double* k, const T* tau, T* out) const {
 
 template <typename T, size_t DIM>
 std::ostream& operator<<(std::ostream& os, const Hooke<T, DIM>& hooke) {
-  return os << "Hooke<" << typeid(T).name() << "," << DIM << ">(mu=" << hooke.mu
-            << ","
-            << "nu=" << hooke.nu << ")";
+  return os << hooke.repr();
 }
