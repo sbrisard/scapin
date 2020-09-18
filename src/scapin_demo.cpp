@@ -65,8 +65,16 @@ complex128 *fft_nninterp(size_t nc, size_t r, complex128 *kernel) {
 }
 
 int main() {
-  Hooke<complex128, 2> gamma{1.0, 0.3};
+  using Scalar = std::complex<double>;
+  Hooke<Scalar, 2> gamma{1.0, 0.3};
   using MultiIndex = std::array<size_t, gamma.dim>;
+
+  const std::array<double, gamma.dim> L{1., 1.};
+  const MultiIndex grid_size{16, 16};
+
+  const size_t num_cells =
+      std::accumulate(grid_size.cbegin(), grid_size.cend(), std::size_t{1},
+                      std::multiplies<size_t>());
 
   std::array<double, gamma.dim> patch_ratio;
   patch_ratio.fill(0.125);
@@ -80,18 +88,75 @@ int main() {
   tau_in[gamma.isize - 1] = 1.;
   tau_out.fill(0.);
 
-  std::array<double, gamma.dim> L{1., 1.};
-  MultiIndex grid_size{16, 16};
-
-  size_t num_cells = std::accumulate(grid_size.cbegin(), grid_size.cend(),
-                                     std::size_t{1}, std::multiplies<size_t>());
   FFTWComplexBuffer tau{num_cells * gamma.isize};
 
+  MultiIndex patch_size;
+  for (size_t k = 0; k < gamma.dim; k++) {
+    patch_size[k] = size_t(std::round(patch_ratio[k] * grid_size[k]));
+  }
   // TODO: This is not dimension independent
-  for (size_t i0 = 0; i0 < grid_size[0]; i0++) {
-    for (size_t i1 = 0; i1 < grid_size[1]; i1++) {
+  for (size_t i0 = 0, offset = 0; i0 < grid_size[0]; i0++) {
+    for (size_t i1 = 0; i1 < grid_size[1]; i1++, offset += gamma.isize) {
+      bool in = (i0 < patch_size[0]) && (i1 < patch_size[1]);
+      for (size_t k = 0; k < gamma.isize; k++) {
+        tau.cpp_data[offset + k] = in ? tau_in[k] : tau_out[k];
+      }
     }
   }
+
+  std::array<int, gamma.dim> n;
+  for (size_t k = 0; k < gamma.dim; k++) {
+    n[k] = int(grid_size[k]);
+  }
+  FFTWComplexBuffer tau_hat_exp{tau.size};
+  auto p = fftw_plan_many_dft(
+      gamma.dim, n.data(), gamma.isize, tau.c_data, nullptr, gamma.isize, 1,
+      tau_hat_exp.c_data, nullptr, gamma.isize, 1, FFTW_FORWARD, FFTW_ESTIMATE);
+  fftw_execute(p);
+  fftw_destroy_plan(p);
+
+  for (size_t i0 = 0, offset = 0; i0 < grid_size[0]; i0++) {
+    for (size_t i1 = 0; i1 < grid_size[1]; i1++, offset += gamma.isize) {
+      std::cout << "[";
+      for (size_t k = 0; k < gamma.isize; k++) {
+        std::cout << tau_hat_exp.cpp_data[offset + k] << ",";
+      }
+      std::cout << "],";
+    }
+    std::cout << "***" << std::endl;
+  }
+
+  // TODO This is a bit ugly
+  auto tau_hat = new Scalar[num_cells * gamma.isize];
+  for (size_t i0 = 0, offset = 0; i0 < grid_size[0]; i0++) {
+    auto s0 = i0 == 0 ? patch_size[0]
+                      : sin(M_PI * patch_size[0] * i0 / grid_size[0]) /
+                            sin(M_PI * i0 / grid_size[0]);
+    for (size_t i1 = 0; i1 < grid_size[1]; i1++, offset += gamma.isize) {
+      auto s1 = i1 == 0 ? patch_size[1]
+                        : sin(M_PI * patch_size[1] * i1 / grid_size[1]) /
+                              sin(M_PI * i1 / grid_size[1]);
+      auto phase = M_PI * ((patch_size[0] - 1.) / grid_size[0] * i0 +
+                           (patch_size[1] - 1.) / grid_size[1] * i1);
+      auto s = Scalar{cos(phase), -sin(phase)};
+      for (size_t k = 0; k < gamma.isize; k++) {
+        tau_hat[offset + k] = s0 * s1 * s * tau_in[k];
+      }
+    }
+  }
+
+  double rtol = 1e-15, atol = 1e-15;
+  for (size_t offset = 0; offset < num_cells * gamma.isize; offset++) {
+    auto exp = tau_hat_exp.cpp_data[offset];
+    auto act = tau_hat[offset];
+    if (abs(act - exp) > rtol * abs(exp) + atol) {
+      std::cout << "exp[" << offset << "] = " << exp << "   ";
+      std::cout << "act[" << offset << "] = " << act << std::endl;
+    }
+  }
+
+  delete[] tau_hat;
+
   //  std::array<double, dim> L = {1.0, 1.0};
   //  MultiIndex Nc = {16, 16};
   //
@@ -111,10 +176,6 @@ int main() {
   //    int n[] = {static_cast<int>(N[0]), static_cast<int>(N[1])};
   //    FFTWComplexBuffer tau{N[0] * N[1] * gamma.isize};
   //    FFTWComplexBuffer eps{N[0] * N[1] * gamma.osize};
-  //    auto p = fftw_plan_many_dft(dim, n, gamma.isize, tau.c_data, nullptr,
-  //                                gamma.isize, 1, tau.c_data, nullptr,
-  //                                gamma.isize, 1, FFTW_FORWARD,
-  //                                FFTW_ESTIMATE);
   //
   //    for (MultiIndex i{0}, ic{0}; i[0] < N[0]; i[0]++) {
   //      ic[0] = i[0] * Nc[0] / N[0];
@@ -128,8 +189,6 @@ int main() {
   //      }
   //    }
   //
-  //    fftw_execute(p);
-  //    fftw_destroy_plan(p);
   //
   //    auto tau_i = tau.cpp_data;
   //    auto eps_i = eps.cpp_data;
