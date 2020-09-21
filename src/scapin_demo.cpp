@@ -13,6 +13,15 @@
 
 using complex128 = std::complex<double>;
 
+<template typename T, size_t DIM>
+void nninterp(const std::array<size_t, DIM) isize, const std::array<size_t, DIM> istride, const T* in, const std::array<size_t, DIM> factor, const std::array<size_t, DIM> ostride, T* out) {
+  for (size_t i0 = 0; i0 < isize[0]; i0++) {
+    offset = istride[0] * i0;
+    for (size_t i1 = 0; i1 < isize[1]; i1++, offset += istride[1]) {
+    }
+  }
+}
+
 class FFTWComplexBuffer {
  public:
   const size_t size;
@@ -144,6 +153,24 @@ int main() {
     }
   }
 
+  MoulinecSuquet94<decltype(gamma)> gamma_h{gamma, grid_size, L};
+  auto eta_hat = new Scalar[num_cells * gamma.isize];
+  FFTWComplexBuffer eta{tau.size};
+  for (size_t i0 = 0, offset = 0; i0 < grid_size[0]; i0++) {
+    for (size_t i1 = 0; i1 < grid_size[1]; i1++, offset += gamma.isize) {
+      gamma_h.apply(grid_size.data(), tau_hat + offset, eta_hat + offset);
+      for (size_t k = 0; k < gamma.isize; k++) {
+        eta.cpp_data[offset + k] = eta_hat[offset + k];
+      }
+    }
+  }
+
+  auto p1 = fftw_plan_many_dft(gamma.dim, n.data(), gamma.isize, eta.c_data,
+                               nullptr, gamma.isize, 1, eta.c_data, nullptr,
+                               gamma.isize, 1, FFTW_BACKWARD, FFTW_ESTIMATE);
+  fftw_execute(p1);
+  fftw_destroy_plan(p1);
+
   delete[] tau_hat;
 
   //  std::array<double, dim> L = {1.0, 1.0};
@@ -159,7 +186,7 @@ int main() {
   //
   //  for (size_t r = 1; r <= r_max; r *= 2) {
   //    MultiIndex N = {r * Nc[0], r * Nc[1]};
-  //    MoulinecSuquet94<decltype(gamma)> gamma_h{gamma, N, L};
+  //
   //    std::cout << gamma_h << std::endl;
   //
   //    int n[] = {static_cast<int>(N[0]), static_cast<int>(N[1])};
