@@ -115,17 +115,6 @@ int main() {
   fftw_execute(p);
   fftw_destroy_plan(p);
 
-  for (size_t i0 = 0, offset = 0; i0 < grid_size[0]; i0++) {
-    for (size_t i1 = 0; i1 < grid_size[1]; i1++, offset += gamma.isize) {
-      std::cout << "[";
-      for (size_t k = 0; k < gamma.isize; k++) {
-        std::cout << tau_hat_exp.cpp_data[offset + k] << ",";
-      }
-      std::cout << "],";
-    }
-    std::cout << "***" << std::endl;
-  }
-
   // TODO This is a bit ugly
   auto tau_hat = new Scalar[num_cells * gamma.isize];
   for (size_t i0 = 0, offset = 0; i0 < grid_size[0]; i0++) {
