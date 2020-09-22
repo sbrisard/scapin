@@ -20,11 +20,12 @@ class MoulinecSuquet94 {
  public:
   const T gamma;
   const std::array<size_t, T::dim> N;
-  const double *L;
+  const std::array<double, T::dim> L;
 
   // TODO : L should default to (1., 1., ...)
-  MoulinecSuquet94(T gamma, const std::array<size_t, T::dim> N, const double *L)
-      : gamma(gamma), N(N), L(create_copy(T::dim, L)), k(create_k(N, L)) {}
+  MoulinecSuquet94(T gamma, const std::array<size_t, T::dim> N,
+                   const std::array<double, T::dim> L)
+      : gamma(gamma), N(N), L(L), k(create_k(N, L)) {}
 
   void apply(const size_t *n, const typename T::Scalar *tau,
              typename T::Scalar *out) const {
@@ -33,13 +34,11 @@ class MoulinecSuquet94 {
       gamma.apply(k[0][n[0]], k[1][n[1]], k[2][n[2]], tau, out);
   }
 
-  ~MoulinecSuquet94() { delete[] L; }
-
  private:
   const std::array<double *, T::dim> k;
 
   static std::array<double *, T::dim> create_k(
-      const std::array<size_t, T::dim> N, const double *L) {
+      const std::array<size_t, T::dim> N, const std::array<double, T::dim> L) {
     std::array<double *, T::dim> k;
     for (size_t i = 0; i < T::dim; i++) {
       k[i] = new double[N[i]];
@@ -54,6 +53,6 @@ std::ostream &operator<<(std::ostream &os, const MoulinecSuquet94<T> &gamma_h) {
   os << "MoulinecSuquet1994(gamma=" << gamma_h.gamma << ", N=[";
   for (auto N_ : gamma_h.N) os << N_ << ",";
   os << "],L=[";
-  for (size_t i = 0; i < T::dim; i++) os << gamma_h.L[i] << ",";
+  for (auto L_ : gamma_h.L) os << L_ << ",";
   return os << "])";
 }

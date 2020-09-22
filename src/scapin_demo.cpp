@@ -81,7 +81,7 @@ int main() {
   std::cout << gamma << std::endl;
   using MultiIndex = std::array<size_t, gamma.dim>;
 
-  const double L[] = {1., 1.};
+  const std::array<double, gamma.dim> L = {1., 1.};
   const std::array<size_t, gamma.dim> grid_size{16, 16};
 
   const size_t num_cells =
