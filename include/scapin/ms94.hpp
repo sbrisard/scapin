@@ -9,13 +9,6 @@
 #include "fft_helper.hpp"
 
 template <typename T>
-T *create_copy(size_t n, const T *src) {
-  auto dest = new T[n];
-  std::copy(src, src + n, dest);
-  return dest;
-}
-
-template <typename T>
 class MoulinecSuquet94 {
  public:
   const T gamma;
