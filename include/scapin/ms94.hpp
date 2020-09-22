@@ -9,7 +9,7 @@
 #include "fft_helper.hpp"
 
 template <typename T>
-T* create_copy(size_t n, const T *src) {
+T *create_copy(size_t n, const T *src) {
   auto dest = new T[n];
   std::copy(src, src + n, dest);
   return dest;
@@ -23,7 +23,7 @@ class MoulinecSuquet94 {
   const double *L;
 
   // TODO : L should default to (1., 1., ...)
-  MoulinecSuquet94(T gamma, const size_t *N, const double *L = nullptr)
+  MoulinecSuquet94(T gamma, const size_t *N, const double *L)
       : gamma(gamma),
         N(create_copy(T::dim, N)),
         L(create_copy(T::dim, L)),
