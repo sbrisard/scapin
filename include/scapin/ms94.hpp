@@ -8,6 +8,15 @@
 
 #include "fft_helper.hpp"
 
+template <typename T, size_t N>
+std::string repr(std::array<T, N> a) {
+  std::ostringstream stream;
+  stream << "[";
+  for (auto a_ : a) stream << a_ << ",";
+  stream << "]";
+  return stream.str();
+}
+
 template <typename T>
 class MoulinecSuquet94 {
  public:
@@ -19,6 +28,13 @@ class MoulinecSuquet94 {
   MoulinecSuquet94(T gamma, const std::array<size_t, T::dim> N,
                    const std::array<double, T::dim> L)
       : gamma(gamma), N(N), L(L), k(create_k(N, L)) {}
+
+  std::string repr() const {
+    std::ostringstream stream;
+    stream << "MoulinecSuquet1994(gamma=" << gamma << ", N=" << ::repr(N)
+           << ",L=" << ::repr(L);
+    return stream.str();
+  }
 
   void apply(const size_t *n, const typename T::Scalar *tau,
              typename T::Scalar *out) const {
@@ -43,9 +59,5 @@ class MoulinecSuquet94 {
 
 template <typename T>
 std::ostream &operator<<(std::ostream &os, const MoulinecSuquet94<T> &gamma_h) {
-  os << "MoulinecSuquet1994(gamma=" << gamma_h.gamma << ", N=[";
-  for (auto N_ : gamma_h.N) os << N_ << ",";
-  os << "],L=[";
-  for (auto L_ : gamma_h.L) os << L_ << ",";
-  return os << "])";
+  return os << gamma_h.repr();
 }
