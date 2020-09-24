@@ -7,11 +7,13 @@
 
 #include <fftw3.h>
 #include <numeric>
+#include <vector>
 
 #include "scapin/ms94.hpp"
 #include "scapin/scapin.hpp"
 
 using complex128 = std::complex<double>;
+using Scalar = std::complex<double>;
 
 template <typename T, size_t N>
 std::array<T, N> array_strides(const std::array<T, N> size) {
@@ -93,32 +95,21 @@ class FFTWComplexBuffer {
   FFTWComplexBuffer &operator=(const FFTWComplexBuffer &&) = delete;
 };
 
-int main() {
-  using Scalar = std::complex<double>;
-  Hooke<Scalar, 2> gamma{1.0, 0.3};
-
-  const std::array<double, gamma.dim> L = {1., 1.};
-
-  /* Coarse grid */
-  const std::array<size_t, gamma.dim + 1> size_c{16, 16, gamma.isize};
-  const auto stride_c = array_strides(size_c);
-  const size_t ncells_c = array_num_cells(size_c);
-  std::cout << repr(stride_c) << std::endl;
-
-  /* Size of coarse grid. */
-  const decltype(size_c) size_f{256, 256, gamma.isize};
-  const auto stride_f = array_strides(size_f);
-  const size_t ncells_f = array_num_cells(size_f);
-  std::cout << repr(stride_f) << std::endl;
+template <typename GREENC>
+void run(GREENC gamma, std::array<size_t, GREENC::dim> Nc,
+         std::array<size_t, GREENC::dim> Nf, Scalar *eta_f) {
+  std::array<double, gamma.dim> L;
+  L.fill(1.);
 
   /*
    * tau_in: value of the prescribed polarization inside the patch
    * tau_out: value of the prescribed polarization outside the patch
    */
-  const std::array<double, gamma.dim> patch_ratio{0.125, 0.125};
+  std::array<double, gamma.dim> patch_ratio;
+  patch_ratio.fill(0.125);
   std::array<size_t, gamma.dim> patch_size;
   for (size_t k = 0; k < gamma.dim; ++k) {
-    patch_size[k] = size_t(std::round(patch_ratio[k] * size_c[k]));
+    patch_size[k] = size_t(std::round(patch_ratio[k] * Nc[k]));
   }
 
   std::array<double, gamma.isize> tau_in, tau_out;
@@ -126,10 +117,10 @@ int main() {
   tau_in[gamma.isize - 1] = 1.;
   tau_out.fill(0.);
 
-  FFTWComplexBuffer tau{ncells_c};
+  FFTWComplexBuffer tau{array_num_cells(Nc) * gamma.isize};
   // TODO: This is not dimension independent
-  for (size_t i0 = 0, i = 0; i0 < size_c[0]; ++i0) {
-    for (size_t i1 = 0; i1 < size_c[1]; ++i1, i += gamma.isize) {
+  for (size_t i0 = 0, i = 0; i0 < Nc[0]; ++i0) {
+    for (size_t i1 = 0; i1 < Nc[1]; ++i1, i += gamma.isize) {
       bool in = (i0 < patch_size[0]) && (i1 < patch_size[1]);
       for (size_t k = 0; k < gamma.isize; ++k) {
         tau.cpp_data[i + k] = in ? tau_in[k] : tau_out[k];
@@ -139,8 +130,10 @@ int main() {
 
   // Set tau to the DFT of the polarization
   std::array<int, gamma.dim> n;
+
+  // TODO: this ugly conversion from size_t to int is needed
   for (size_t k = 0; k < gamma.dim; ++k) {
-    n[k] = int(size_c[k]);
+    n[k] = int(Nc[k]);
   }
   auto p = fftw_plan_many_dft(gamma.dim, n.data(), gamma.isize, tau.c_data,
                               nullptr, gamma.isize, 1, tau.c_data, nullptr,
@@ -149,27 +142,77 @@ int main() {
   fftw_destroy_plan(p);
 
   // Set eta to the DFT of gamma_h(tau)
+  MoulinecSuquet94<decltype(gamma)> gamma_h{gamma, Nc, L};
+  FFTWComplexBuffer eta{array_num_cells(Nc) * gamma.osize};
   // TODO: this is not dimension independent
-  MoulinecSuquet94<decltype(gamma)> gamma_h{
-      gamma, std::array<size_t, gamma.dim>{size_c[0], size_c[1]}, L};
-  std::cout << gamma_h << std::endl;
-  FFTWComplexBuffer eta{tau.size};
-  for (size_t i0 = 0, i = 0; i0 < size_c[0]; ++i0) {
-    for (size_t i1 = 0; i1 < size_c[1]; ++i1, i += gamma.isize) {
-      gamma_h.apply(size_c.data(), tau.cpp_data + i, eta.cpp_data + i);
+  for (size_t i0 = 0, i = 0, j = 0; i0 < Nc[0]; ++i0) {
+    for (size_t i1 = 0; i1 < Nc[1]; ++i1, i += gamma.isize, j += gamma.osize) {
+      size_t n[gamma.dim] = {i0, i1};
+      gamma_h.apply(n, tau.cpp_data + i, eta.cpp_data + j);
     }
   }
 
+  // Handle the null-frequency case
+  for (size_t k = 0; k < gamma.osize; k++) {
+    eta.cpp_data[k] = 0.;
+  }
+
   // Set eta to gamma_h(tau)
-  p = fftw_plan_many_dft(gamma.dim, n.data(), gamma.isize, eta.c_data, nullptr,
-                         gamma.isize, 1, eta.c_data, nullptr, gamma.isize, 1,
+  p = fftw_plan_many_dft(gamma.dim, n.data(), gamma.osize, eta.c_data, nullptr,
+                         gamma.osize, 1, eta.c_data, nullptr, gamma.osize, 1,
                          FFTW_BACKWARD, FFTW_ESTIMATE);
   fftw_execute(p);
   fftw_destroy_plan(p);
 
-  // Refine eta
-  auto eta_f = new double[ncells_f * gamma.osize];
-  //  nninterp(size_c, stride_c, eta, size_f, stride_f, eta_f);
+  // Normalize inverse DFT
+  const double normalization = 1. / array_num_cells(Nc);
+  for (size_t k = 0; k < eta.size; ++k) {
+    eta.cpp_data[k] *= normalization;
+  }
 
-  delete[eta_f];
+  // Refine eta
+  std::array<size_t, gamma.dim> istrides, ostrides;
+  istrides[gamma.dim - 1] = gamma.osize;
+  ostrides[gamma.dim - 1] = gamma.osize;
+  for (int k = gamma.dim - 2; k >= 0; k--) {
+    istrides[k] = istrides[k + 1] * Nc[k + 1];
+    ostrides[k] = ostrides[k + 1] * Nf[k + 1];
+  }
+  for (size_t k = 0; k < gamma.osize; k++) {
+    nninterp(Nc, istrides, eta.cpp_data + k, Nf, ostrides, eta_f + k);
+  }
+}
+
+int main() {
+  const size_t dim = 2;
+  Hooke<Scalar, dim> gamma{1.0, 0.3};
+  const size_t num_refinements = 6;
+  std::array<size_t, num_refinements> N;
+  N[0] = 8;
+  for (size_t k = 1; k < num_refinements; ++k) {
+    N[k] = 2 * N[k - 1];
+  }
+  std::cout << repr(N) << std::endl;
+
+  std::array<size_t, dim> Nc, Nf;
+  Nf.fill(N[num_refinements - 1]);
+  size_t num_cells = array_num_cells(Nf);
+
+  Scalar *results[num_refinements];
+  for (size_t r = 0; r < num_refinements; r++) {
+    Nc.fill(N[r]);
+    auto eta = new Scalar[num_cells * gamma.osize];
+    run(gamma, Nc, Nf, eta);
+    results[r] = eta;
+  }
+
+  auto eta_ref = results[num_refinements - 1];
+  for (size_t r = 0; r < num_refinements; ++r) {
+    auto eta = results[r];
+    double norm = 0.;
+    for (size_t i = 0; i < num_cells * gamma.osize; ++i) {
+      norm += std::norm(eta[i] - eta_ref[i]);
+    }
+    std::cout << N[r] << ", " << norm << std::endl;
+  }
 }
