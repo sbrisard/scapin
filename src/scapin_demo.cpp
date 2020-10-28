@@ -97,9 +97,7 @@ void run(GREENC gamma, blitz::TinyVector<int, GREENC::dim> Nc,
   fftw_destroy_plan(p);
 
   // Set eta to the DFT of gamma_h(tau)
-  // TODO: remove with issue #4
-  std::array<size_t, GREENC::dim> Nc_{Nc[0], Nc[1]};
-  MoulinecSuquet94<decltype(gamma)> gamma_h{gamma, Nc_.data(), L.data()};
+  MoulinecSuquet94<decltype(gamma)> gamma_h{gamma, Nc.data(), L.data()};
   auto eta_shape{tau_shape};
   eta_shape[GREENC::dim] = GREENC::osize;
   auto eta = create_array(eta_shape);
@@ -107,7 +105,7 @@ void run(GREENC gamma, blitz::TinyVector<int, GREENC::dim> Nc,
   // TODO: this is not dimension independent
   for (int i0 = 0; i0 < Nc[0]; ++i0) {
     for (int i1 = 0; i1 < Nc[1]; ++i1) {
-      size_t n[GREENC::dim] = {i0, i1};
+      int n[GREENC::dim] = {i0, i1};
       gamma_h.apply(n, tau(i0, i1, all).data(), eta(i0, i1, all).data());
     }
   }
@@ -127,18 +125,18 @@ void run(GREENC gamma, blitz::TinyVector<int, GREENC::dim> Nc,
   eta *= normalization;
 
   // TODO This is not dimension independent
-  for (size_t k = 0; k < gamma.osize; k++) {
+  for (int k = 0; k < gamma.osize; k++) {
     nninterp(eta(all, all, k), eta_f(all, all, k));
   }
 }
 
 int main() {
-  const size_t dim = 2;
+  const int dim = 2;
   Hooke<complex128, dim> gamma{1.0, 0.3};
-  const size_t num_refinements = 6;
+  const int num_refinements = 6;
   std::array<int, num_refinements> N;
   N[0] = 8;
-  for (size_t k = 1; k < num_refinements; ++k) {
+  for (int k = 1; k < num_refinements; ++k) {
     N[k] = 2 * N[k - 1];
   }
   std::cout << repr(N) << std::endl;
@@ -151,7 +149,7 @@ int main() {
   for (int i = 0; i < dim; i++) eta_shape[i] = Nf[i];
   eta_shape[dim] = gamma.osize;
   blitz::Array<complex128, dim + 1> results[num_refinements];
-  for (size_t r = 0; r < num_refinements; r++) {
+  for (int r = 0; r < num_refinements; r++) {
     Nc = N[r];
     blitz::Array<complex128 , dim+1> eta{eta_shape};
     run(gamma, Nc, Nf, eta);
@@ -159,7 +157,7 @@ int main() {
   }
 
   auto eta_ref = results[num_refinements - 1];
-  for (size_t r = 0; r < num_refinements; ++r) {
+  for (int r = 0; r < num_refinements; ++r) {
     auto eta = results[r];
     auto eps = eta - eta_ref;
     complex128 norm2 = blitz::sum(eps * blitz::conj(eps));

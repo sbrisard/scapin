@@ -30,13 +30,13 @@ template <typename T>
 class MoulinecSuquet94 {
  public:
   const T gamma;
-  const std::array<size_t, T::dim> N;
+  const std::array<int, T::dim> N;
   const std::array<double, T::dim> L;
 
   // TODO : L should default to (1., 1., ...)
-  MoulinecSuquet94(T gamma, const size_t *N, const double *L)
+  MoulinecSuquet94(T gamma, const int *N, const double *L)
       : gamma(gamma),
-        N(to_std_array<size_t, T::dim>(N)),
+        N(to_std_array<int, T::dim>(N)),
         L(to_std_array<double, T::dim>(L)),
         k(create_k(this->N, this->L)) {}
 
@@ -47,7 +47,7 @@ class MoulinecSuquet94 {
     return stream.str();
   }
 
-  void apply(const size_t *n, const typename T::Scalar *tau,
+  void apply(const int *n, const typename T::Scalar *tau,
              typename T::Scalar *out) const {
     if constexpr (T::dim == 2) gamma.apply(k[0][n[0]], k[1][n[1]], tau, out);
     if constexpr (T::dim == 3)
@@ -58,9 +58,9 @@ class MoulinecSuquet94 {
   const std::array<double *, T::dim> k;
 
   static std::array<double *, T::dim> create_k(
-      const std::array<size_t, T::dim> N, const std::array<double, T::dim> L) {
+      const std::array<int, T::dim> N, const std::array<double, T::dim> L) {
     std::array<double *, T::dim> k;
-    for (size_t i = 0; i < T::dim; i++) {
+    for (int i = 0; i < T::dim; i++) {
       k[i] = new double[N[i]];
       fft_helper::fftwavnum(N[i], L[i], k[i]);
     }

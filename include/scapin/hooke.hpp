@@ -7,12 +7,12 @@
 
 #include "core.hpp"
 
-template <typename T, size_t DIM>
+template <typename T, int DIM>
 class Hooke {
  public:
-  static constexpr size_t dim = DIM;
-  static constexpr size_t isize = (DIM * (DIM + 1)) / 2;
-  static constexpr size_t osize = (DIM * (DIM + 1)) / 2;
+  static constexpr int dim = DIM;
+  static constexpr int isize = (DIM * (DIM + 1)) / 2;
+  static constexpr int osize = (DIM * (DIM + 1)) / 2;
   typedef T Scalar;
 
   const double mu;
@@ -31,7 +31,7 @@ class Hooke {
   void apply(const double* k, const T* tau, T* out) const;
 };
 
-template <typename T, size_t DIM>
+template <typename T, int DIM>
 void Hooke<T, DIM>::apply(double kx, double ky, const T* tau, T* out) const {
   static_assert(DIM == 2, "should only be called when DIM == 2");
   auto k2 = kx * kx + ky * ky;
@@ -46,7 +46,7 @@ void Hooke<T, DIM>::apply(double kx, double ky, const T* tau, T* out) const {
   out[2] = const3 * (kx * tau_k_y + ky * tau_k_x - const1 * kx * ky);
 }
 
-template <typename T, size_t DIM>
+template <typename T, int DIM>
 void Hooke<T, DIM>::apply(double kx, double ky, double kz, const T* tau,
                           T* out) const {
   static_assert(DIM == 3, "should only be called when DIM == 3");
@@ -66,13 +66,13 @@ void Hooke<T, DIM>::apply(double kx, double ky, double kz, const T* tau,
   out[5] = const3 * (kx * tau_k_y + ky * tau_k_x - const1 * kx * ky);
 }
 
-template <typename T, size_t DIM>
+template <typename T, int DIM>
 void Hooke<T, DIM>::apply(const double* k, const T* tau, T* out) const {
   if constexpr (DIM == 2) apply(k[0], k[1], tau, out);
   if constexpr (DIM == 3) apply(k[0], k[1], k[2], tau, out);
 }
 
-template <typename T, size_t DIM>
+template <typename T, int DIM>
 std::ostream& operator<<(std::ostream& os, const Hooke<T, DIM>& hooke) {
   return os << hooke.repr();
 }

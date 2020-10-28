@@ -33,7 +33,7 @@ namespace fft_helper {
  * returned. Otherwise, `freq` must be a preallocated `double[n]` array, which
  * is modified in place and returned.
  */
-DllExport double *fftfreq(size_t n, double d, double *freq);
+DllExport double *fftfreq(int n, double d, double *freq);
 
 /**
  * Return the Discrete Fourier Transform sample wavenumbers.
@@ -53,5 +53,5 @@ DllExport double *fftfreq(size_t n, double d, double *freq);
  * returned. Otherwise, `k` must be a preallocated `double[n]` array, which
  * is modified in place and returned.
  */
-DllExport double *fftwavnum(size_t n, double L, double *k);
+DllExport double *fftwavnum(int n, double L, double *k);
 }  // namespace fft_helper
