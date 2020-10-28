@@ -23,9 +23,7 @@ template <typename T, int RANK>
 void nninterp(const blitz::Array<T, RANK> &in, blitz::Array<T, RANK> &out) {
   /*
    * i0, i1: indices in output array
-   * i: offset in output array
    * j0, j1: indices in input array
-   * j: offset in input array
    */
   auto ishape = in.shape();
   auto oshape = out.shape();
