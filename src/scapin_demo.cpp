@@ -19,42 +19,6 @@ using complex128 = std::complex<double>;
 double squared_modulus(complex128 x) { return std::norm(x); }
 BZ_DECLARE_FUNCTION(squared_modulus)
 
-template <typename T, size_t N>
-std::array<T, N> array_strides(const std::array<T, N> size) {
-  std::array<T, N> strides;
-  strides[N - 1] = 1;
-  for (size_t k = 0; k < N - 1; ++k) {
-    size_t kk = N - 2 - k;
-    strides[kk] = strides[kk + 1] * size[kk + 1];
-  }
-  return strides;
-}
-
-template <typename T, size_t N>
-T array_num_cells(const std::array<T, N> size) {
-  constexpr T one{1};
-  constexpr auto mul = std::multiplies<T>();
-  return std::accumulate(std::begin(size), std::end(size), one, mul);
-}
-
-template <typename T>
-std::string repr_array_2D(const std::array<size_t, 2> size,
-                          const std::array<size_t, 2> stride, const T *array) {
-  std::ostringstream stream;
-  stream << "[";
-  for (size_t i0 = 0; i0 < size[0]; ++i0) {
-    stream << "[";
-    size_t i = stride[0] * i0;
-    for (size_t i1 = 0; i1 < size[1]; ++i1, i += stride[1]) {
-      stream << array[i] << ",";
-    }
-    stream << "]";
-    if (i0 + 1 < size[0]) stream << std::endl;
-  }
-  stream << "]";
-  return stream.str();
-}
-
 template <typename T, int RANK>
 void nninterp(const blitz::Array<T, RANK> &in, blitz::Array<T, RANK> &out) {
   /*
@@ -77,24 +41,6 @@ void nninterp(const blitz::Array<T, RANK> &in, blitz::Array<T, RANK> &out) {
     }
   }
 }
-
-class FFTWComplexBuffer {
- public:
-  const size_t size;
-  fftw_complex *const c_data;
-  complex128 *const cpp_data;
-
-  FFTWComplexBuffer(size_t n)
-      : size(n),
-        c_data((fftw_complex *)fftw_malloc(n * sizeof(fftw_complex))),
-        cpp_data(reinterpret_cast<complex128 *const>(c_data)) {}
-
-  ~FFTWComplexBuffer() { fftw_free(c_data); }
-  FFTWComplexBuffer(const FFTWComplexBuffer &) = delete;
-  FFTWComplexBuffer &operator=(const FFTWComplexBuffer &) = delete;
-  FFTWComplexBuffer(const FFTWComplexBuffer &&) = delete;
-  FFTWComplexBuffer &operator=(const FFTWComplexBuffer &&) = delete;
-};
 
 template <size_t RANK>
 blitz::Array<complex128, RANK> create_array(
