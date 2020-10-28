@@ -97,14 +97,9 @@ void run(GREENC gamma, blitz::TinyVector<int, GREENC::dim> Nc,
   fftw_destroy_plan(p);
 
   // Set eta to the DFT of gamma_h(tau)
-  // TODO: this is ugly, see Issue #3
-  std::array<size_t, GREENC::dim> Nc_;
-  std::array<double, GREENC::dim> L_;
-  for (int i = 0; i < GREENC::dim; i++) {
-    Nc_[i] = size_t(Nc[i]);
-    L_[i] = L[i];
-  }
-  MoulinecSuquet94<decltype(gamma)> gamma_h{gamma, Nc_, L_};
+  // TODO: remove with issue #4
+  std::array<size_t, GREENC::dim> Nc_{Nc[0], Nc[1]};
+  MoulinecSuquet94<decltype(gamma)> gamma_h{gamma, Nc_.data(), L.data()};
   auto eta_shape{tau_shape};
   eta_shape[GREENC::dim] = GREENC::osize;
   auto eta = create_array(eta_shape);

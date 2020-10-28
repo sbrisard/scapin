@@ -17,6 +17,15 @@ std::string repr(std::array<T, N> a) {
   return stream.str();
 }
 
+template <typename T, size_t N>
+std::array<T, N> to_std_array(const T *data) {
+  std::array<T, N> array{};
+  for (size_t i = 0; i < N; i++) {
+    array[i] = data[i];
+  }
+  return array;
+}
+
 template <typename T>
 class MoulinecSuquet94 {
  public:
@@ -25,9 +34,11 @@ class MoulinecSuquet94 {
   const std::array<double, T::dim> L;
 
   // TODO : L should default to (1., 1., ...)
-  MoulinecSuquet94(T gamma, const std::array<size_t, T::dim> N,
-                   const std::array<double, T::dim> L)
-      : gamma(gamma), N(N), L(L), k(create_k(N, L)) {}
+  MoulinecSuquet94(T gamma, const size_t *N, const double *L)
+      : gamma(gamma),
+        N(to_std_array<size_t, T::dim>(N)),
+        L(to_std_array<double, T::dim>(L)),
+        k(create_k(this->N, this->L)) {}
 
   std::string repr() const {
     std::ostringstream stream;
