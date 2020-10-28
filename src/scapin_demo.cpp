@@ -12,6 +12,8 @@
 #include "scapin/ms94.hpp"
 #include "scapin/scapin.hpp"
 
+#include "blitz/array.h"
+
 using complex128 = std::complex<double>;
 using Scalar = std::complex<double>;
 
