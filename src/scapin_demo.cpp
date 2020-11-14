@@ -65,16 +65,22 @@ class ConvergenceTest {
         reinterpret_cast<complex128 *>(tau_data), tau_shape,
         blitz::neverDeleteData);
 
-    // TODO: This is not dimension independent
-    for (int i0 = 0; i0 < tau_shape[0]; ++i0) {
-      for (int i1 = 0; i1 < tau_shape[1]; ++i1) {
-        bool in = (i0 < patch_size[0]) && (i1 < patch_size[1]);
-        for (int k = 0; k < GREENC::isize; ++k) {
-          tau(i0, i1, k) = in ? tau_in[k] : tau_out[k];
-        }
-      }
+    auto lb = tau.lbound();
+    auto ub_out = tau.ubound();
+    auto ub_in = tau.ubound();
+    for (int i = 0; i < GREENC::dim; i++) {
+      // Note that upper-bound is inclusive in Blitz++
+      ub_in[i] = patch_size[i] - 1;
     }
-
+    for (int k = 0; k < GREENC::isize; ++k) {
+      lb[GREENC::isize - 1] = k;
+      ub_in[GREENC::isize - 1] = k;
+      ub_out[GREENC::isize - 1] = k;
+      blitz::RectDomain<GREENC::dim + 1> out{lb, ub_out};
+      tau(out) = tau_out[k];
+      blitz::RectDomain<GREENC::dim + 1> in{lb, ub_in};
+      tau(in) = tau_in[k];
+    }
     auto p = fftw_plan_many_dft(GREENC::dim, tau_shape.data(), GREENC::isize,
                                 tau_data, nullptr, GREENC::isize, 1, tau_data,
                                 nullptr, GREENC::isize, 1, FFTW_FORWARD,
