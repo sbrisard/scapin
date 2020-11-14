@@ -131,6 +131,7 @@ class ConvergenceTest {
     eta(0, 0, all) = 0.;
 
     // Set eta to gamma_h(tau)
+    // TODO: a method should be defined in GREENC to apply to a whole array
     auto p = fftw_plan_many_dft(GREENC::dim, tau_shape.data(), GREENC::osize,
                                 eta_data, nullptr, GREENC::osize, 1, eta_data,
                                 nullptr, GREENC::osize, 1, FFTW_BACKWARD,
