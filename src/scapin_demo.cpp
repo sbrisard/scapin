@@ -132,9 +132,14 @@ class ConvergenceTest {
     }
     eta /= (double)num_cells;
 
-    // TODO This is not dimension independent
     for (int k = 0; k < gamma.osize; k++) {
-      nninterp(eta(all, all, k), eta_f(all, all, k));
+      if constexpr(GREENC::dim == 2) {
+        nninterp(eta(all, all, k), eta_f(all, all, k));
+      } else if constexpr(GREENC::dim == 3) {
+        nninterp(eta(all, all, all, k), eta_f(all, all, all, k));
+      } else {
+        static_assert(false, "unexpected number of spatial dimensions");
+      }
     }
 
     fftw_free(eta_data);
