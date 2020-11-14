@@ -41,6 +41,8 @@ class ConvergenceTest {
   blitz::TinyVector<double, GREENC::isize> tau_in, tau_out;
 
   ConvergenceTest(GREENC &gamma) : gamma(gamma) {
+    static_assert((GREENC::dim == 2) || (GREENC::dim == 3),
+                  "unexpected number of spatial dimensions");
     Nf = 256;
     L = 1.0;
     patch_ratio = 0.125;
@@ -107,11 +109,22 @@ class ConvergenceTest {
         blitz::neverDeleteData);
 
     const auto all = blitz::Range::all();
-    // TODO: this is not dimension independent
-    for (int i0 = 0; i0 < tau_shape[0]; ++i0) {
-      for (int i1 = 0; i1 < tau_shape[1]; ++i1) {
-        int n[GREENC::dim] = {i0, i1};
-        gamma_h.apply(n, tau(i0, i1, all).data(), eta(i0, i1, all).data());
+    if constexpr (GREENC::dim == 2) {
+      for (int i0 = 0; i0 < tau_shape[0]; ++i0) {
+        for (int i1 = 0; i1 < tau_shape[1]; ++i1) {
+          int n[GREENC::dim] = {i0, i1};
+          gamma_h.apply(n, tau(i0, i1, all).data(), eta(i0, i1, all).data());
+        }
+      }
+    } else if constexpr (GREENC::dim == 3) {
+      for (int i0 = 0; i0 < tau_shape[0]; ++i0) {
+        for (int i1 = 0; i1 < tau_shape[1]; ++i1) {
+          for (int i2 = 0; i2 < tau_shape[2]; ++i2) {
+            int n[GREENC::dim] = {i0, i1, i2};
+            gamma_h.apply(n, tau(i0, i1, i2, all).data(),
+                          eta(i0, i1, i2, all).data());
+          }
+        }
       }
     }
 
@@ -133,12 +146,10 @@ class ConvergenceTest {
     eta /= (double)num_cells;
 
     for (int k = 0; k < gamma.osize; k++) {
-      if constexpr(GREENC::dim == 2) {
+      if constexpr (GREENC::dim == 2) {
         nninterp(eta(all, all, k), eta_f(all, all, k));
-      } else if constexpr(GREENC::dim == 3) {
+      } else if constexpr (GREENC::dim == 3) {
         nninterp(eta(all, all, all, k), eta_f(all, all, all, k));
-      } else {
-        static_assert(false, "unexpected number of spatial dimensions");
       }
     }
 
