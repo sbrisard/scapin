@@ -22,22 +22,10 @@ BZ_DECLARE_FUNCTION(squared_modulus)
 
 template <typename T, int RANK>
 void nninterp(const blitz::Array<T, RANK> &in, blitz::Array<T, RANK> &out) {
-  /*
-   * i0, i1: indices in output array
-   * j0, j1: indices in input array
-   */
-  auto ishape = in.shape();
-  auto oshape = out.shape();
-  //  blitz::TinyVector<int, RANK> r;
-  //  for (int i = 0; i < RANK; i++) r[i] = oshape[i] / ishape[i];
   auto r = out.shape() / in.shape();
-  // TODO: this loop is not dimension independent
-  for (int i0 = 0; i0 < oshape[0]; ++i0) {
-    int j0 = i0 / r[0];
-    for (int i1 = 0; i1 < oshape[1]; ++i1) {
-      int j1 = i1 / r[1];
-      out(i0, i1) = in(j0, j1);
-    }
+  for (auto out_i = out.begin(); out_i != out.end(); out_i++) {
+    blitz::TinyVector<int, RANK> j = out_i.position() / r;
+    *out_i = in(j);
   }
 }
 
