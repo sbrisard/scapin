@@ -6,5 +6,7 @@
 #define DllExport
 #endif
 
+namespace scapin {
 template <typename T>
 int dimensionality();
+}

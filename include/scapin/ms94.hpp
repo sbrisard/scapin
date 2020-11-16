@@ -8,6 +8,7 @@
 
 #include "fft_helper.hpp"
 
+namespace scapin {
 template <typename T, size_t N>
 std::string repr(std::array<T, N> a) {
   std::ostringstream stream;
@@ -72,3 +73,4 @@ template <typename T>
 std::ostream &operator<<(std::ostream &os, const MoulinecSuquet94<T> &gamma_h) {
   return os << gamma_h.repr();
 }
+}  // namespace scapin

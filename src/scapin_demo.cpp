@@ -99,7 +99,7 @@ class ConvergenceTest {
     auto tau_shape = tau.shape();
 
     // Set eta to the DFT of gamma_h(tau)
-    MoulinecSuquet94<GREENC> gamma_h{gamma, tau_shape.data(), L.data()};
+    scapin::MoulinecSuquet94<GREENC> gamma_h{gamma, tau_shape.data(), L.data()};
     auto eta_shape{tau_shape};
     eta_shape[GREENC::dim] = GREENC::osize;
     auto eta_data = (fftw_complex *)fftw_malloc(blitz::product(eta_shape) *
@@ -165,7 +165,7 @@ void compute_reference(double mu, double nu, blitz::TinyVector<int, DIM> Nc,
 
 int main() {
   const int dim = 2;
-  Hooke<complex128, dim> gamma{1.0, 0.3};
+  scapin::Hooke<complex128, dim> gamma{1.0, 0.3};
   ConvergenceTest<decltype(gamma)> test{gamma};
 
   blitz::TinyVector<int, dim> Nc;

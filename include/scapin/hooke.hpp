@@ -6,7 +6,7 @@
 #include <ostream>
 
 #include "core.hpp"
-
+namespace scapin {
 template <typename T, int DIM>
 class Hooke {
  public:
@@ -76,3 +76,4 @@ template <typename T, int DIM>
 std::ostream& operator<<(std::ostream& os, const Hooke<T, DIM>& hooke) {
   return os << hooke.repr();
 }
+}  // namespace scapin
