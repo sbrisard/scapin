@@ -15,16 +15,16 @@ using complex128 = std::complex<float64>;
 
 template <typename T, size_t DIM>
 auto create_binding(py::module m, const char* name) {
-  using Hooke_ = Hooke<T, DIM>;
-  return py::class_<Hooke_>(m, name)
+  using Hooke = scapin::Hooke<T, DIM>;
+  return py::class_<Hooke>(m, name)
       .def(py::init<double, double>())
-      .def_readonly_static("dim", &Hooke_::dim)
-      .def_readonly_static("isize", &Hooke_::isize)
-      .def_readonly_static("osize", &Hooke_::osize)
-      .def_readonly("mu", &Hooke_::mu)
-      .def_readonly("nu", &Hooke_::nu)
-      .def("__repr__", &Hooke_::repr)
-      .def("apply", [](Hooke_& self, py::array_t<double, py::array::c_style> k,
+      .def_readonly_static("dim", &Hooke::dim)
+      .def_readonly_static("isize", &Hooke::isize)
+      .def_readonly_static("osize", &Hooke::osize)
+      .def_readonly("mu", &Hooke::mu)
+      .def_readonly("nu", &Hooke::nu)
+      .def("__repr__", &Hooke::repr)
+      .def("apply", [](Hooke& self, py::array_t<double, py::array::c_style> k,
                        py::array_t<T, py::array::c_style> tau,
                        py::array_t<T, py::array::c_style> out) {
         self.apply(k.data(), tau.data(), out.mutable_data());

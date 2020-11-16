@@ -25,7 +25,7 @@ def pybind11_extension(module_name, metadata):
 
 if __name__ == "__main__":
     metadata = {
-        "name": "pyscapin",
+        "name": "scapin",
         "version": get_metadata("version"),
         "author": get_metadata("author"),
         "author_email": get_metadata("author_email"),

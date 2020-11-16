@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyscapin.hooke import HookeFloat64_2D, HookeFloat64_3D
+from scapin.hooke import HookeFloat64_2D, HookeFloat64_3D
 
 SQRT2 = np.sqrt(2.0)
 
