@@ -30,12 +30,12 @@ std::array<T, N> to_std_array(const T *data) {
 template <typename T>
 class MoulinecSuquet94 {
  public:
-  const T gamma;
+  const T &gamma;
   const std::array<int, T::dim> N;
   const std::array<double, T::dim> L;
 
   // TODO : L should default to (1., 1., ...)
-  MoulinecSuquet94(T gamma, const int *N, const double *L)
+  MoulinecSuquet94(const T &gamma, const int *N, const double *L)
       : gamma(gamma),
         N(to_std_array<int, T::dim>(N)),
         L(to_std_array<double, T::dim>(L)),
