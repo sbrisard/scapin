@@ -56,6 +56,34 @@ class MoulinecSuquet94 {
       gamma.apply(k[0][n[0]], k[1][n[1]], k[2][n[2]], tau, out);
   }
 
+  void apply(const typename T::Scalar *tau, typename T::Scalar *out) const {
+    auto k0 = k[0];
+    auto k1 = k[1];
+    auto tau_ = tau;
+    auto out_ = out;
+    if constexpr (T::dim == 2) {
+      for (int n0 = 0; n0 < N[0]; n0++) {
+        for (int n1 = 0; n1 < N[1]; n1++) {
+          gamma.apply(k0[n0], k1[n1], tau_, out_);
+          tau_ += T::isize;
+          out_ += T::osize;
+        }
+      }
+    }
+    if constexpr (T::dim == 3) {
+      auto k2 = k[2];
+      for (int n0 = 0; n0 < N[0]; n0++) {
+        for (int n1 = 0; n1 < N[1]; n1++) {
+          for (int n2 = 0; n2 < N[2]; n2++) {
+            gamma.apply(k0[n0], k1[n1], k2[n2], tau_, out_);
+            tau_ += T::isize;
+            out_ += T::osize;
+          }
+        }
+      }
+    }
+  }
+
  private:
   const std::array<double *, T::dim> k;
 
