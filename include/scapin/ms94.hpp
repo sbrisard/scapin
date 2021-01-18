@@ -8,6 +8,7 @@
 
 #include "fft_helper.hpp"
 
+namespace scapin {
 template <typename T, size_t N>
 std::array<T, N> to_std_array(const T *data) {
   std::array<T, N> array{};
