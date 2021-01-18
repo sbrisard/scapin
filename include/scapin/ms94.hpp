@@ -8,16 +8,6 @@
 
 #include "fft_helper.hpp"
 
-namespace scapin {
-template <typename T, size_t N>
-std::string repr(std::array<T, N> a) {
-  std::ostringstream stream;
-  stream << "[";
-  for (auto a_ : a) stream << a_ << ",";
-  stream << "]";
-  return stream.str();
-}
-
 template <typename T, size_t N>
 std::array<T, N> to_std_array(const T *data) {
   std::array<T, N> array{};
@@ -44,8 +34,9 @@ class MoulinecSuquet94 {
 
   std::string repr() const {
     std::ostringstream stream;
-    stream << "MoulinecSuquet1994(gamma=" << gamma << ", N=" << scapin::repr(N)
-           << ",L=" << scapin::repr(L);
+    stream << "MoulinecSuquet1994(gamma=" << gamma
+           << ", N=" << scapin::repr(N.cbegin(), N.cend())
+           << ",L=" << scapin::repr(L.cbegin(), L.cend());
     return stream.str();
   }
 

@@ -9,4 +9,14 @@
 namespace scapin {
 template <typename T>
 int dimensionality();
+
+template <typename Iterator>
+std::string repr(Iterator first, Iterator last) {
+  std::ostringstream stream;
+  stream << "{";
+  for (auto i = first; i < last; i++) stream << *i << ",";
+  stream << "}";
+  return stream.str();
 }
+
+}  // namespace scapin
