@@ -5,6 +5,9 @@ find_library(FFTW3_LIBRARY NAMES libfftw3 libfftw3-3)
 
 find_path(BLITZ_INCLUDE_DIR blitz.h)
 
+find_package(xtl REQUIRED)
+find_package(xtensor REQUIRED)
+
 find_package(bri17 CONFIG REQUIRED)
 
 add_executable(scapin_demo scapin_demo.cpp)
@@ -16,3 +19,4 @@ if (MATH_LIBRARY)
 endif ()
 target_link_libraries(scapin_demo ${FFTW3_LIBRARY})
 target_link_libraries(scapin_demo bri17::bri17)
+target_link_libraries(scapin_demo xtensor)
