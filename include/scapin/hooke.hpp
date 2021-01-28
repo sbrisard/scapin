@@ -23,8 +23,8 @@ class Hooke {
 
   std::string repr() const {
     std::ostringstream stream;
-    stream << "Hooke<" << typeid(T).name() << "," << DIM << ">(mu=" << mu << ","
-           << "nu=" << nu << ")";
+    stream << "Hooke<" << typeid(T).name() << "," << DIM << ">{mu=" << mu << ","
+           << "nu=" << nu << "}";
     return stream.str();
   }
 

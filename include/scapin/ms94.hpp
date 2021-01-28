@@ -35,9 +35,9 @@ class MoulinecSuquet94 {
 
   std::string repr() const {
     std::ostringstream stream;
-    stream << "MoulinecSuquet1994(gamma=" << gamma
-           << ", N=" << scapin::repr(N.cbegin(), N.cend())
-           << ",L=" << scapin::repr(L.cbegin(), L.cend());
+    stream << "MoulinecSuquet1994{gamma=" << gamma
+           << ",N=" << scapin::repr(N.cbegin(), N.cend())
+           << ",L=" << scapin::repr(L.cbegin(), L.cend()) << "}";
     return stream.str();
   }
 
