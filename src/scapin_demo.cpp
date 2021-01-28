@@ -1,5 +1,3 @@
-#define _USE_MATH_DEFINES
-
 #include <array>
 #include <cmath>
 #include <complex>
@@ -13,70 +11,63 @@
 #include "scapin/ms94.hpp"
 #include "scapin/scapin.hpp"
 
-#include "blitz/array.h"
-
+#include <xtensor/xarray.hpp>
+#include <xtensor/xdynamic_view.hpp>
+#include <xtensor/xfixed.hpp>
 #include <xtensor/xio.hpp>
-#include "xtensor/xarray.hpp"
-#include "xtensor/xdynamic_view.hpp"
-#include "xtensor/xfixed.hpp"
-#include "xtensor/xtensor.hpp"
+#include <xtensor/xnorm.hpp>
+#include <xtensor/xtensor.hpp>
+#include <xtensor/xview.hpp>
 
 using complex128 = std::complex<double>;
-
-double squared_modulus(complex128 x) { return std::norm(x); }
-BZ_DECLARE_FUNCTION(squared_modulus)
-
-template <typename T, int RANK>
-void nninterp(const blitz::Array<T, RANK> &in, blitz::Array<T, RANK> &out) {
-  auto r = out.shape() / in.shape();
-  for (auto out_i = out.begin(); out_i != out.end(); out_i++) {
-    blitz::TinyVector<int, RANK> j = out_i.position() / r;
-    *out_i = in(j);
-  }
-}
 
 template <typename GREENC>
 class ConvergenceTest {
  public:
+  using Field = xt::xtensor<complex128, GREENC::dim + 1>;
   static constexpr int num_refinements = 6;
   const GREENC &gamma;
 
-  blitz::TinyVector<int, GREENC::dim> Nf;
-  blitz::TinyVector<double, GREENC::dim> L;
-  blitz::TinyVector<double, GREENC::dim> patch_ratio;
-  blitz::TinyVector<double, GREENC::isize> tau_out;
-  xt::xtensor_fixed<double, xt::xshape<GREENC::isize>> tau_in;
+  std::array<int, GREENC::dim> Nf;
+  std::array<double, GREENC::dim> L, patch_ratio;
+  std::array<complex128, GREENC::isize> tau_in, tau_out;
 
-  ConvergenceTest(GREENC &gamma) : gamma(gamma) {
+  explicit ConvergenceTest(GREENC &gamma) : gamma(gamma) {
     static_assert((GREENC::dim == 2) || (GREENC::dim == 3),
                   "unexpected number of spatial dimensions");
-    Nf = 256;
-    L = 1.0;
-    patch_ratio = 0.125;
-    tau_in = xt::zeros<double>({GREENC::isize});
+    fill(Nf.begin(), Nf.end(), 512);
+    fill(L.begin(), L.end(), 1.0);
+    fill(patch_ratio.begin(), patch_ratio.end(), 0.125);
+    fill(tau_in.begin(), tau_in.end(), 0.0);
     tau_in[GREENC::isize - 1] = 1.;
-    tau_out = 0.;
+    fill(tau_out.begin(), tau_out.end(), 0.0);
   }
 
-  xt::xtensor<complex128, GREENC::dim + 1> create_tau_hat(int refinement) {
+  Field create_tau_hat(int refinement) {
     std::array<size_t, GREENC::dim> patch_size;
     std::array<size_t, GREENC::dim + 1> tau_shape;
-    for (int i = 0; i < GREENC::dim; i++) {
-      int Nc = Nf[i] >> (num_refinements - 1 - refinement);
-      patch_size[i] = int(std::round(patch_ratio[i] * Nc));
-      tau_shape[i] = Nc;
-    }
+    std::transform(Nf.cbegin(), Nf.cend(), tau_shape.begin(),
+                   [this, refinement](int n) {
+                     return n >> (this->num_refinements - 1 - refinement);
+                   });
     tau_shape[GREENC::dim] = GREENC::isize;
+    std::transform(patch_ratio.cbegin(), patch_ratio.cend(), tau_shape.cbegin(),
+                   patch_size.begin(), [](double r, size_t n) {
+                     return size_t(std::round(r * n));
+                   });
 
-    xt::xtensor<complex128, GREENC::dim + 1> tau{tau_shape};
-    // TODO Do not use dynamic views
-    xt::xdynamic_slice_vector in;
-    for (int i = 0; i < GREENC::dim; i++) {
-      in.push_back(xt::range(0, patch_size[i]));
+    Field tau{tau_shape};
+    for (size_t k = 0; k < GREENC::isize; ++k) {
+      xt::strided_view(tau, {xt::ellipsis(), k}) = tau_out[k];
+      xt::xstrided_slice_vector sv;
+      for (size_t i = 0; i < GREENC::dim; ++i) {
+        sv.push_back(xt::range(0, patch_size[i]));
+      }
+      sv.push_back(k);
+      xt::strided_view(tau, sv) = tau_in[k];
     }
-    in.push_back(xt::all());
-    xt::dynamic_view(tau, in) = tau_in;
 
+    // TODO: this should be simplified
     std::array<int, GREENC::dim + 1> tau_shape_int{};
     std::transform(tau_shape.cbegin(), tau_shape.cend(), tau_shape_int.begin(),
                    [](size_t n) -> int { return n; });
@@ -87,49 +78,53 @@ class ConvergenceTest {
                                 FFTW_FORWARD, FFTW_ESTIMATE);
     fftw_execute(p);
     fftw_destroy_plan(p);
+    // End of simplification
 
     return tau;
   }
 
-  void run(int refinement, xt::xtensor<complex128, GREENC::dim + 1> &eta_f) {
+  Field run(int refinement) {
     auto tau = create_tau_hat(refinement);
-    auto tau_shape = tau.shape();
+    // This conversion is required by FFTW
+    std::array<int, GREENC::dim + 1> tau_shape;
+    std::transform(tau.shape().cbegin(), tau.shape().cend(), tau_shape.begin(),
+                   [](size_t n) -> int { return n; });
 
     // Set eta to the DFT of gamma_h(tau)
     scapin::MoulinecSuquet94<GREENC> gamma_h{gamma, tau_shape.data(), L.data()};
     auto eta_shape{tau_shape};
     eta_shape[GREENC::dim] = GREENC::osize;
-    auto eta_data = (fftw_complex *)fftw_malloc(blitz::product(eta_shape) *
-                                                sizeof(fftw_complex));
-    auto eta = blitz::Array<complex128, GREENC::dim + 1>(
-        reinterpret_cast<complex128 *>(eta_data), eta_shape,
-        blitz::neverDeleteData);
+    auto eta = Field::from_shape(eta_shape);
+    auto eta_data = reinterpret_cast<fftw_complex *>(eta.data());
 
-    const auto all = blitz::Range::all();
+    // TODO -- Remove ugly pointers
+    auto tau_ = tau.data();
+    auto eta_ = eta.data();
     if constexpr (GREENC::dim == 2) {
       for (int i0 = 0; i0 < tau_shape[0]; ++i0) {
         for (int i1 = 0; i1 < tau_shape[1]; ++i1) {
-          int n[GREENC::dim] = {i0, i1};
-          gamma_h.apply(n, tau(i0, i1, all).data(), eta(i0, i1, all).data());
+          std::array<int, GREENC::dim> n{i0, i1};
+          gamma_h.apply(n.data(), tau_, eta_);
+          // TODO Ugly pointers
+          tau_ += GREENC::isize;
+          eta_ += GREENC::osize;
         }
       }
     } else if constexpr (GREENC::dim == 3) {
       for (int i0 = 0; i0 < tau_shape[0]; ++i0) {
         for (int i1 = 0; i1 < tau_shape[1]; ++i1) {
           for (int i2 = 0; i2 < tau_shape[2]; ++i2) {
-            int n[GREENC::dim] = {i0, i1, i2};
-            gamma_h.apply(n, tau(i0, i1, i2, all).data(),
-                          eta(i0, i1, i2, all).data());
+            std::array<int, GREENC::dim> n{i0, i1, i2};
+            gamma_h.apply(n.data(), tau_, eta_);
+            tau_ += GREENC::isize;
+            eta_ += GREENC::osize;
           }
         }
       }
     }
 
-    eta(0, 0, all) = 0.;
-
-    // Set eta to gamma_h(tau)
-    // TODO: a method should be defined in GREENC to apply to a whole array
-    auto p = fftw_plan_many_dft(GREENC::dim, tau_shape.data(), GREENC::osize,
+    // TODO -- This should be simplified (xtensor-fftw)
+    auto p = fftw_plan_many_dft(GREENC::dim, eta_shape.data(), GREENC::osize,
                                 eta_data, nullptr, GREENC::osize, 1, eta_data,
                                 nullptr, GREENC::osize, 1, FFTW_BACKWARD,
                                 FFTW_ESTIMATE);
@@ -137,66 +132,63 @@ class ConvergenceTest {
     fftw_destroy_plan(p);
 
     // Normalize inverse DFT
-    int num_cells = 1;
-    for (int i = 0; i < GREENC::dim; i++) {
-      num_cells *= tau_shape[i];
-    }
-    eta /= (double)num_cells;
+    int num_cells = std::reduce(tau_shape.cbegin(), tau_shape.cend() - 1, 1,
+                                std::multiplies());
+    xt::strided_view(eta, {xt::ellipsis()}) /= (double)num_cells;
 
-    for (int k = 0; k < gamma.osize; k++) {
-      if constexpr (GREENC::dim == 2) {
-        nninterp(eta(all, all, k), eta_f(all, all, k));
-      } else if constexpr (GREENC::dim == 3) {
-        nninterp(eta(all, all, all, k), eta_f(all, all, all, k));
+    std::array<size_t, GREENC::dim + 1> eta_f_shape;
+    std::copy(Nf.cbegin(), Nf.cend(), eta_f_shape.begin());
+    eta_f_shape[GREENC::dim] = gamma.osize;
+    auto eta_f = Field::from_shape(eta_f_shape);
+    // Use int since eta_shape is an int (this is a bit ugly).
+    std::array<int, GREENC::dim> ratio{};
+    std::transform(eta_f_shape.cbegin(), eta_f_shape.cend() - 1,
+                   eta_shape.cbegin(), ratio.begin(), std::divides());
+    const int factor = eta_f_shape[0] / eta_shape[0];
+    if constexpr (GREENC::dim == 2) {
+      for (size_t i0 = 0; i0 < eta_f_shape[0]; ++i0) {
+        size_t j0 = i0 / ratio[0];
+        for (size_t i1 = 0; i1 < eta_f_shape[1]; ++i1) {
+          size_t j1 = i1 / ratio[1];
+          for (size_t i2 = 0; i2 < eta_f_shape[2]; ++i2) {
+            eta_f(i0, i1, i2) = eta(j0, j1, i2);
+          }
+        }
+      }
+    } else if constexpr (GREENC::dim == 3) {
+      for (size_t i0 = 0; i0 < eta_f_shape[0]; ++i0) {
+        size_t j0 = i0 / ratio[0];
+        for (size_t i1 = 0; i1 < eta_f_shape[1]; ++i1) {
+          size_t j1 = i1 / ratio[1];
+          for (size_t i2 = 0; i2 < eta_f_shape[2]; ++i2) {
+            size_t j2 = i2 / ratio[2];
+            for (size_t i3 = 0; i3 < eta_f_shape[3]; ++i3) {
+              eta_f(i0, i1, i2, i3) = eta(j0, j1, j2, i3);
+            }
+          }
+        }
       }
     }
 
-    fftw_free(eta_data);
+    return eta_f;
   }
 };
-
-template <int DIM>
-void compute_reference(double mu, double nu, blitz::TinyVector<int, DIM> Nc,
-                       blitz::TinyVector<int, DIM> Nf,
-                       blitz::Array<complex128, DIM + 1> &eta_f) {}
 
 int main() {
   const int dim = 2;
   scapin::Hooke<complex128, dim> gamma{1.0, 0.3};
   ConvergenceTest<decltype(gamma)> test{gamma};
 
-  auto tau = test.create_tau_hat(0);
-  for (auto i = 0; i < tau.shape(tau.dimension() - 1); i++) {
-    xt::xdynamic_slice_vector sv;
-    sv.push_back(xt::all());
-    sv.push_back(xt::all());
-    sv.push_back(i);
-    std::cout << xt::dynamic_view(tau, sv) << std::endl;
+  std::vector<xt::xtensor<complex128, dim + 1>> results{};
+  for (int r = 0; r < decltype(test)::num_refinements; r++) {
+    results.push_back(test.run(r));
   }
 
-  std::cout << "tau.shape = {";
-  for (auto i : tau.shape()) {
-    std::cout << i << ", ";
+  auto eta_ref = *results.rbegin();
+  for (auto eta : results) {
+    auto eps = eta - eta_ref;
+    auto err = xt::norm_l2(eps);
+    std::cout << err << std::endl;
   }
-  std::cout << "}" << std::endl;
-
-  //  blitz::TinyVector<int, dim> Nc;
-  //  std::array<size_t, dim + 1> eta_shape;
-  //  for (int i = 0; i < dim; i++) eta_shape[i] = test.Nf[i];
-  //  eta_shape[dim] = gamma.osize;
-  //  xt::xtensor<complex128, dim + 1> results[test.num_refinements];
-  //  test.create_tau_hat(0);
-  //  for (int r = 0; r < test.num_refinements; r++) {
-  //    xt::xtensor<complex128, dim + 1> results[r]{eta_shape};
-  //    //    test.run(r, results[r]);
-  //  }
-
-  //  auto eta_ref = results[test.num_refinements - 1];
-  //  for (int r = 0; r < test.num_refinements; ++r) {
-  //    auto eta = results[r];
-  //    auto eps = eta - eta_ref;
-  //    complex128 norm2 = blitz::sum(eps * blitz::conj(eps));
-  //    std::cout << r << ", " << norm2 << std::endl;
-  //  }
   return 0;
 }
