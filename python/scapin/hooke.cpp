@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <complex>
+#include <iostream>
 
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -23,6 +24,8 @@ auto create_binding(py::module m, const char* name) {
       .def_readonly_static("osize", &Hooke::osize)
       .def_readonly("mu", &Hooke::mu)
       .def_readonly("nu", &Hooke::nu)
+      .def_property_readonly_static(
+          "dtype", [](py::object) { return py::dtype::of<T>(); })
       .def("__repr__", &Hooke::repr)
       .def("apply", [](Hooke& self, py::array_t<double, py::array::c_style> k,
                        py::array_t<T, py::array::c_style> tau,
