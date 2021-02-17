@@ -9,7 +9,6 @@ target_include_directories(scapin_demo PRIVATE ../include)
 if (MATH_LIBRARY)
     target_link_libraries(scapin_demo ${MATH_LIBRARY})
 endif ()
-add_compile_definitions(_USE_MATH_DEFINES)
 
 target_link_libraries(scapin_demo ${FFTW3_LIBRARY})
 target_link_libraries(scapin_demo bri17::bri17)

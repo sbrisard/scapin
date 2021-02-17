@@ -10,8 +10,8 @@
  */
 #pragma once
 
-#define _USE_MATH_DEFINES
 #include <cmath>
+#include <numbers>
 
 #include "core.hpp"
 
@@ -73,7 +73,7 @@ DllExport double *fftwavnum(int n, double L, double *k) {
   }
   int const m = n / 2;
   int const rem = n % 2;
-  double const delta_k = 2 * M_PI / (n * L);
+  double const delta_k = 2 * std::numbers::pi / (n * L);
   for (int i = 0; i < m + rem; i++) {
     k[i] = delta_k * i;
   }

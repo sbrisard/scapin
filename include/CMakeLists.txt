@@ -22,8 +22,6 @@ target_include_directories(
 if (MATH_LIBRARY)
   target_link_libraries(${PROJECT_NAME} INTERFACE ${MATH_LIBRARY})
 endif()
-add_compile_definitions(_USE_MATH_DEFINES)
-
 
 install(
   TARGETS ${PROJECT_NAME}
