@@ -1,14 +1,10 @@
 find_path(FFTW3_INCLUDE_DIR fftw3.h)
 find_library(FFTW3_LIBRARY NAMES libfftw3 libfftw3-3)
 
-find_package(xtl REQUIRED)
-find_package(xtensor REQUIRED)
-
 find_package(bri17 CONFIG REQUIRED)
 
 add_executable(scapin_demo scapin_demo.cpp)
 target_include_directories(scapin_demo PRIVATE ${FFTW3_INCLUDE_DIR})
-target_include_directories(scapin_demo PRIVATE ${BLITZ_INCLUDE_DIR})
 target_include_directories(scapin_demo PRIVATE ../include)
 if (MATH_LIBRARY)
     target_link_libraries(scapin_demo ${MATH_LIBRARY})
@@ -17,4 +13,3 @@ add_compile_definitions(_USE_MATH_DEFINES)
 
 target_link_libraries(scapin_demo ${FFTW3_LIBRARY})
 target_link_libraries(scapin_demo bri17::bri17)
-target_link_libraries(scapin_demo xtensor)

@@ -13,7 +13,7 @@ project(
   DESCRIPTION ${METADATA_AUTHOR}
   LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 include(CMakePackageConfigHelpers)
 include(CTest)
 
