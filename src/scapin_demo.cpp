@@ -64,7 +64,7 @@ class ConvergenceTest {
     std::transform(
         patch_ratio.cbegin(), patch_ratio.cend(), grid_shape.cbegin(),
         patch_size.begin(),
-        [](double r, size_t n) { return size_t(std::round(r * n)); });
+        [](double r, int n) { return int(std::round(r * n)); });
 
     auto tau = new complex128[tau_size];
     if constexpr (GREENC::dim == 2) {
@@ -85,8 +85,7 @@ class ConvergenceTest {
 
     // TODO: this should be simplified
     std::array<int, GREENC::dim + 1> tau_shape;
-    std::transform(grid_shape.cbegin(), grid_shape.cend(), tau_shape.begin(),
-                   [](size_t n) { return int(n); });
+    std::copy(grid_shape.cbegin(), grid_shape.cend(), tau_shape.begin());
     tau_shape[GREENC::dim] = GREENC::isize;
     auto tau_data = reinterpret_cast<fftw_complex *>(tau);
     auto p = fftw_plan_many_dft(GREENC::dim, tau_shape.data(), GREENC::isize,
@@ -158,7 +157,7 @@ class ConvergenceTest {
       eta[i] /= (double)grid_size;
     }
 
-    std::array<size_t, GREENC::dim + 1> eta_f_shape;
+    std::array<int, GREENC::dim + 1> eta_f_shape;
     std::copy(Nf.cbegin(), Nf.cend(), eta_f_shape.begin());
     eta_f_shape[GREENC::dim] = gamma.osize;
     auto eta_f_size = std::accumulate(eta_f_shape.cbegin(), eta_f_shape.cend(),
@@ -168,11 +167,11 @@ class ConvergenceTest {
     std::transform(eta_f_shape.cbegin(), eta_f_shape.cend() - 1,
                    eta_shape.cbegin(), ratio.begin(), std::divides());
     if constexpr (GREENC::dim == 2) {
-      for (size_t i0 = 0; i0 < eta_f_shape[0]; ++i0) {
-        size_t j0 = i0 / ratio[0];
-        for (size_t i1 = 0; i1 < eta_f_shape[1]; ++i1) {
-          size_t j1 = i1 / ratio[1];
-          for (size_t k = 0; k < GREENC::osize; ++k) {
+      for (int i0 = 0; i0 < eta_f_shape[0]; ++i0) {
+        auto j0 = i0 / ratio[0];
+        for (int i1 = 0; i1 < eta_f_shape[1]; ++i1) {
+          auto j1 = i1 / ratio[1];
+          for (int k = 0; k < GREENC::osize; ++k) {
             int i = (i0 * eta_f_shape[1] + i1) * eta_f_shape[2] + k;
             int j = (j0 * eta_shape[1] + j1) * eta_shape[2] + k;
             eta_f[i] = eta[j];
