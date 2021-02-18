@@ -28,7 +28,12 @@ auto distance(size_t n, scalar_t const *x1, scalar_t const *x2) {
 template <typename T>
 void create_and_execute_plan(std::span<int> shape, int howmany, std::span<T> in,
                              int sign = FFTW_FORWARD,
-                             unsigned flags = FFTW_ESTIMATE) {
+                             unsigned flags = FFTW_ESTIMATE);
+
+template <>
+void create_and_execute_plan(std::span<int> shape, int howmany,
+                             std::span<std::complex<double>> in, int sign,
+                             unsigned flags) {
   auto in_ = reinterpret_cast<fftw_complex *>(in.data());
   auto p =
       fftw_plan_many_dft(shape.size(), shape.data(), howmany, in_, nullptr,
