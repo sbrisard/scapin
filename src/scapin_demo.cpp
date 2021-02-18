@@ -13,9 +13,9 @@
 #include "scapin/ms94.hpp"
 #include "scapin/scapin.hpp"
 
-using complex128 = std::complex<double>;
+using scalar_t = std::complex<double>;
 
-auto distance(size_t n, complex128 const *x1, complex128 const *x2) {
+auto distance(size_t n, scalar_t const *x1, scalar_t const *x2) {
   double output = 0.0;
   auto x1_ = x1;
   auto x2_ = x2;
@@ -33,7 +33,7 @@ class ConvergenceTest {
 
   std::array<int, GREENC::dim> Nf;
   std::array<double, GREENC::dim> L, patch_ratio;
-  std::array<complex128, GREENC::isize> tau_in, tau_out;
+  std::array<scalar_t, GREENC::isize> tau_in, tau_out;
 
   explicit ConvergenceTest(GREENC &gamma) : gamma(gamma) {
     static_assert((GREENC::dim == 2) || (GREENC::dim == 3),
@@ -55,7 +55,7 @@ class ConvergenceTest {
     return shape;
   }
 
-  complex128 *create_tau_hat(int refinement) {
+  scalar_t *create_tau_hat(int refinement) {
     auto grid_shape = get_grid_shape(refinement);
     auto tau_size = std::accumulate(grid_shape.cbegin(), grid_shape.cend(),
                                     GREENC::isize, std::multiplies());
@@ -66,7 +66,7 @@ class ConvergenceTest {
         patch_size.begin(),
         [](double r, int n) { return int(std::round(r * n)); });
 
-    auto tau = new complex128[tau_size];
+    auto tau = new scalar_t[tau_size];
     if constexpr (GREENC::dim == 2) {
       auto tau_ = tau;
       for (int i0 = 0; i0 < grid_shape[0]; i0++) {
@@ -99,7 +99,7 @@ class ConvergenceTest {
     return tau;
   }
 
-  complex128 *run(int refinement) {
+  scalar_t *run(int refinement) {
     auto grid_shape = get_grid_shape(refinement);
     auto grid_size = std::reduce(grid_shape.cbegin(), grid_shape.cend(), 1,
                                  std::multiplies());
@@ -116,7 +116,7 @@ class ConvergenceTest {
     eta_shape[GREENC::dim] = GREENC::osize;
     auto eta_size = std::accumulate(eta_shape.cbegin(), eta_shape.cend(), 1,
                                     std::multiplies());
-    auto eta = new complex128[eta_size];
+    auto eta = new scalar_t[eta_size];
     auto eta_data = reinterpret_cast<fftw_complex *>(eta);
 
     auto tau_ = tau;
@@ -162,7 +162,7 @@ class ConvergenceTest {
     eta_f_shape[GREENC::dim] = gamma.osize;
     auto eta_f_size = std::accumulate(eta_f_shape.cbegin(), eta_f_shape.cend(),
                                       1, std::multiplies());
-    auto eta_f = new complex128[eta_f_size];
+    auto eta_f = new scalar_t[eta_f_size];
     std::array<int, GREENC::dim> ratio{};
     std::transform(eta_f_shape.cbegin(), eta_f_shape.cend() - 1,
                    eta_shape.cbegin(), ratio.begin(), std::divides());
@@ -202,13 +202,13 @@ class ConvergenceTest {
 
 int main() {
   const int dim = 2;
-  scapin::Hooke<complex128, dim> gamma{1.0, 0.3};
+  scapin::Hooke<scalar_t, dim> gamma{1.0, 0.3};
   ConvergenceTest<decltype(gamma)> test{gamma};
 
   auto eta_size = std::accumulate(test.Nf.cbegin(), test.Nf.cend(), gamma.osize,
                                   std::multiplies());
 
-  std::vector<complex128 *> results(test.num_refinements);
+  std::vector<scalar_t *> results(test.num_refinements);
   for (int r = 0; r < test.num_refinements; r++) {
     results[r] = test.run(r);
   }

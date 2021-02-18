@@ -40,8 +40,12 @@ PYBIND11_MODULE(hooke, m) {
   m.attr("__version__") = py::cast(__SCAPIN_VERSION__);
   m.attr("__author__") = py::cast(__SCAPIN_AUTHOR__);
 
-  create_binding<float64, 2>(m, "HookeFloat64_2D");
-  create_binding<float64, 3>(m, "HookeFloat64_3D");
-  create_binding<complex128, 2>(m, "HookeComplex128_2D");
-  create_binding<complex128, 3>(m, "HookeComplex128_3D");
+  auto Hooke_2f64 = create_binding<float64, 2>(m, "Hooke_2f64");
+  create_binding<float64, 3>(m, "Hooke_3f64");
+  create_binding<complex128, 2>(m, "Hooke_2c128");
+  create_binding<complex128, 3>(m, "Hooke_3c128");
+
+  py::dict Hooke;
+  Hooke[py::make_tuple(py::dtype::of<double>(), 2)] = Hooke_2f64;
+  m.attr("Hooke") = Hooke;
 }
