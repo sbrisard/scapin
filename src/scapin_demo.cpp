@@ -15,14 +15,11 @@
 
 using scalar_t = std::complex<double>;
 
-auto distance(size_t n, scalar_t const *x1, scalar_t const *x2) {
-  double output = 0.0;
-  auto x1_ = x1;
-  auto x2_ = x2;
-  for (size_t i = 0; i < n; i++, x1_++, x2_++) {
-    output += std::norm(*x2_ - *x1_);
-  }
-  return sqrt(output);
+auto distance(std::vector<scalar_t> x1, std::vector<scalar_t> x2) {
+  auto d2 = std::transform_reduce(
+      x1.cbegin(), x1.cend(), x2.cbegin(), scalar_t{0}, std::plus(),
+      [](auto x, auto y) { return std::norm(y - x); });
+  return sqrt(d2);
 }
 
 template <typename T>
@@ -50,6 +47,7 @@ class ConvergenceTest {
   const GREENC &gamma;
 
   shape_t finest_grid_shape;
+  int finest_grid_size;
   std::array<double, GREENC::dim> L, patch_ratio;
   std::array<scalar_t, GREENC::isize> tau_in, tau_out;
 
@@ -57,6 +55,10 @@ class ConvergenceTest {
     static_assert((GREENC::dim == 2) || (GREENC::dim == 3),
                   "unexpected number of spatial dimensions");
     fill(finest_grid_shape.begin(), finest_grid_shape.end(), 512);
+    finest_grid_size =
+        std::accumulate(finest_grid_shape.cbegin(), finest_grid_shape.cend(), 1,
+                        std::multiplies());
+
     fill(L.begin(), L.end(), 1.0);
     fill(patch_ratio.begin(), patch_ratio.end(), 0.125);
     fill(tau_in.begin(), tau_in.end(), 0.0);
@@ -81,14 +83,14 @@ class ConvergenceTest {
     return patch_shape;
   }
 
-  scalar_t *create_tau_hat(int refinement) {
+  std::vector<scalar_t> create_tau_hat(int refinement) {
     auto grid_shape = get_grid_shape(refinement);
+    auto grid_size = std::accumulate(grid_shape.cbegin(), grid_shape.cend(), 1,
+                                     std::multiplies());
     auto patch_shape = get_patch_shape(grid_shape);
-    auto tau_size = std::accumulate(grid_shape.cbegin(), grid_shape.cend(),
-                                    GREENC::isize, std::multiplies());
-    auto tau = new scalar_t[tau_size];
+    std::vector<scalar_t> tau(grid_size * GREENC::isize);
     if constexpr (GREENC::dim == 2) {
-      auto tau_ = tau;
+      auto tau_ = tau.data();
       for (int i0 = 0; i0 < grid_shape[0]; i0++) {
         bool in0 = i0 < patch_shape[0];
         for (int i1 = 0; i1 < grid_shape[1]; i1++, tau_ += GREENC::isize) {
@@ -103,30 +105,21 @@ class ConvergenceTest {
       static_assert(GREENC::dim != 3, "not implemented");
     }
 
-    create_and_execute_plan<scalar_t>(grid_shape, GREENC::isize,
-                                      {tau, static_cast<size_t>(tau_size)});
+    create_and_execute_plan<scalar_t>(grid_shape, GREENC::isize, tau);
     return tau;
   }
 
-  scalar_t *run(int refinement) {
+  std::vector<scalar_t> run(int refinement) {
     auto grid_shape = get_grid_shape(refinement);
     auto grid_size = std::reduce(grid_shape.cbegin(), grid_shape.cend(), 1,
                                  std::multiplies());
     auto tau = create_tau_hat(refinement);
-
-    std::array<int, GREENC::dim + 1> tau_shape;
-    std::transform(grid_shape.cbegin(), grid_shape.cend(), tau_shape.begin(),
-                   [](size_t n) { return int(n); });
-    tau_shape[GREENC::dim] = GREENC::isize;
-
-    // Set eta to the DFT of gamma_h(tau)
     scapin::MoulinecSuquet94<GREENC> gamma_h{gamma, grid_shape.data(),
                                              L.data()};
-    auto eta_size = grid_size * GREENC::osize;
-    auto eta = new scalar_t[eta_size];
+    std::vector<scalar_t> eta(grid_size * GREENC::osize);
 
-    auto tau_ = tau;
-    auto eta_ = eta;
+    auto tau_ = tau.data();
+    auto eta_ = eta.data();
     if constexpr (GREENC::dim == 2) {
       for (int i0 = 0; i0 < grid_shape[0]; ++i0) {
         for (int i1 = 0; i1 < grid_shape[1]; ++i1) {
@@ -150,19 +143,14 @@ class ConvergenceTest {
       }
     }
 
-    create_and_execute_plan<scalar_t>(grid_shape, GREENC::osize,
-                                      {eta, static_cast<size_t>(eta_size)},
+    create_and_execute_plan<scalar_t>(grid_shape, GREENC::osize, eta,
                                       FFTW_BACKWARD);
 
-    // Normalize inverse DFT
-    for (int i = 0; i < eta_size; i++) {
-      eta[i] /= (double)grid_size;
-    }
+    double factor = 1. / (double)grid_size;
+    std::transform(eta.cbegin(), eta.cend(), eta.begin(),
+                   [factor](auto x) { return factor * x; });
 
-    auto eta_f_size =
-        std::accumulate(finest_grid_shape.cbegin(), finest_grid_shape.cend(),
-                        GREENC::osize, std::multiplies());
-    auto eta_f = new scalar_t[eta_f_size];
+    std::vector<scalar_t> eta_f(finest_grid_size * GREENC::osize);
     std::array<int, GREENC::dim> ratio{};
     std::transform(finest_grid_shape.cbegin(), finest_grid_shape.cend(),
                    grid_shape.cbegin(), ratio.begin(), std::divides());
@@ -193,9 +181,6 @@ class ConvergenceTest {
       //        }
       //      }
     }
-
-    delete[] tau;
-    delete[] eta;
     return eta_f;
   }
 };
@@ -205,20 +190,15 @@ int main() {
   scapin::Hooke<scalar_t, dim> gamma{1.0, 0.3};
   ConvergenceTest<decltype(gamma)> test{gamma};
 
-  auto eta_size = std::accumulate(test.finest_grid_shape.cbegin(),
-                                  test.finest_grid_shape.cend(), gamma.osize,
-                                  std::multiplies());
-
-  std::vector<scalar_t *> results(test.num_refinements);
+  std::vector<std::vector<scalar_t>> results(test.num_refinements);
   for (int r = 0; r < test.num_refinements; r++) {
     results[r] = test.run(r);
   }
 
   auto eta_ref = *results.rbegin();
   for (auto eta : results) {
-    auto err = distance(eta_size, eta, eta_ref);
+    auto err = distance(eta, eta_ref);
     std::cout << err << std::endl;
-    delete[] eta;
   }
   return 0;
 }
