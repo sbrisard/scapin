@@ -15,7 +15,8 @@
 
 using scalar_t = std::complex<double>;
 
-auto distance(std::vector<scalar_t> x1, std::vector<scalar_t> x2) {
+auto distance(std::vector<scalar_t> const &x1,
+              std::vector<scalar_t> const &x2) {
   auto d2 = std::transform_reduce(
       x1.cbegin(), x1.cend(), x2.cbegin(), scalar_t{0}, std::plus(),
       [](auto x, auto y) { return std::norm(y - x); });
@@ -196,7 +197,7 @@ int main() {
   }
 
   auto eta_ref = *results.rbegin();
-  for (auto eta : results) {
+  for (auto const &eta : results) {
     auto err = distance(eta, eta_ref);
     std::cout << err << std::endl;
   }
