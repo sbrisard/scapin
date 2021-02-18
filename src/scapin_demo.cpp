@@ -25,12 +25,14 @@ auto distance(size_t n, scalar_t const *x1, scalar_t const *x2) {
   return sqrt(output);
 }
 
-template <typename T, int DIM, int N>
-void create_and_execute(int *shape, T *data, int sign = FFTW_FORWARD,
-                        unsigned flags = FFTW_ESTIMATE) {
-  auto data_ = reinterpret_cast<fftw_complex *>(data);
-  auto p = fftw_plan_many_dft(DIM, shape, N, data_, nullptr, N, 1, data_,
-                              nullptr, N, 1, sign, flags);
+template <typename T>
+void create_and_execute_plan(std::span<int> shape, int howmany, std::span<T> in,
+                             int sign = FFTW_FORWARD,
+                             unsigned flags = FFTW_ESTIMATE) {
+  auto in_ = reinterpret_cast<fftw_complex *>(in.data());
+  auto p =
+      fftw_plan_many_dft(shape.size(), shape.data(), howmany, in_, nullptr,
+                         howmany, 1, in_, nullptr, howmany, 1, sign, flags);
   fftw_execute(p);
   fftw_destroy_plan(p);
 }
@@ -76,9 +78,9 @@ class ConvergenceTest {
 
   scalar_t *create_tau_hat(int refinement) {
     auto grid_shape = get_grid_shape(refinement);
+    auto patch_shape = get_patch_shape(grid_shape);
     auto tau_size = std::accumulate(grid_shape.cbegin(), grid_shape.cend(),
                                     GREENC::isize, std::multiplies());
-    auto patch_shape = get_patch_shape(grid_shape);
     auto tau = new scalar_t[tau_size];
     if constexpr (GREENC::dim == 2) {
       auto tau_ = tau;
@@ -96,8 +98,8 @@ class ConvergenceTest {
       static_assert(GREENC::dim != 3, "not implemented");
     }
 
-    create_and_execute<scalar_t, GREENC::dim, GREENC::isize>(grid_shape.data(),
-                                                             tau);
+    create_and_execute_plan<scalar_t>(grid_shape, GREENC::isize,
+                                      {tau, static_cast<size_t>(tau_size)});
     return tau;
   }
 
@@ -143,8 +145,9 @@ class ConvergenceTest {
       }
     }
 
-    create_and_execute<scalar_t, GREENC::dim, GREENC::osize>(
-        grid_shape.data(), eta, FFTW_BACKWARD);
+    create_and_execute_plan<scalar_t>(grid_shape, GREENC::osize,
+                                      {eta, static_cast<size_t>(eta_size)},
+                                      FFTW_BACKWARD);
 
     // Normalize inverse DFT
     for (int i = 0; i < eta_size; i++) {
