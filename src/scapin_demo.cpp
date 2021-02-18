@@ -117,32 +117,7 @@ class ConvergenceTest {
     scapin::MoulinecSuquet94<GREENC> gamma_h{gamma, grid_shape.data(),
                                              L.data()};
     std::vector<scalar_t> eta(grid_size * GREENC::osize);
-
-    auto tau_ = tau.data();
-    auto eta_ = eta.data();
-    if constexpr (GREENC::dim == 2) {
-      for (int i0 = 0; i0 < grid_shape[0]; ++i0) {
-        for (int i1 = 0; i1 < grid_shape[1]; ++i1) {
-          std::array<int, GREENC::dim> n{i0, i1};
-          gamma_h.apply(n.data(), tau_, eta_);
-          // TODO Ugly pointers
-          tau_ += GREENC::isize;
-          eta_ += GREENC::osize;
-        }
-      }
-    } else if constexpr (GREENC::dim == 3) {
-      for (int i0 = 0; i0 < grid_shape[0]; ++i0) {
-        for (int i1 = 0; i1 < grid_shape[1]; ++i1) {
-          for (int i2 = 0; i2 < grid_shape[2]; ++i2) {
-            std::array<int, GREENC::dim> n{i0, i1, i2};
-            gamma_h.apply(n.data(), tau_, eta_);
-            tau_ += GREENC::isize;
-            eta_ += GREENC::osize;
-          }
-        }
-      }
-    }
-
+    gamma_h.apply(tau.data(), eta.data());
     create_and_execute_plan<scalar_t>(grid_shape, GREENC::osize, eta,
                                       FFTW_BACKWARD);
 
