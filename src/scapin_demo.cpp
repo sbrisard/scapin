@@ -25,13 +25,24 @@ auto distance(size_t n, scalar_t const *x1, scalar_t const *x2) {
   return sqrt(output);
 }
 
+template <typename T, int DIM, int N>
+void create_and_execute(int *shape, T *data, int sign = FFTW_FORWARD,
+                        unsigned flags = FFTW_ESTIMATE) {
+  auto data_ = reinterpret_cast<fftw_complex *>(data);
+  auto p = fftw_plan_many_dft(DIM, shape, N, data_, nullptr, N, 1, data_,
+                              nullptr, N, 1, sign, flags);
+  fftw_execute(p);
+  fftw_destroy_plan(p);
+}
+
 template <typename GREENC>
 class ConvergenceTest {
  public:
+  using tuple_t = std::array<int, GREENC::dim>;
   static constexpr int num_refinements = 6;
   const GREENC &gamma;
 
-  std::array<int, GREENC::dim> Nf;
+  tuple_t Nf;
   std::array<double, GREENC::dim> L, patch_ratio;
   std::array<scalar_t, GREENC::isize> tau_in, tau_out;
 
@@ -46,8 +57,8 @@ class ConvergenceTest {
     fill(tau_out.begin(), tau_out.end(), 0.0);
   }
 
-  std::array<int, GREENC::dim> get_grid_shape(int refinement) {
-    std::array<int, GREENC::dim> shape;
+  tuple_t get_grid_shape(int refinement) {
+    tuple_t shape;
     std::transform(Nf.cbegin(), Nf.cend(), shape.begin(),
                    [this, refinement](int n) {
                      return n >> (this->num_refinements - 1 - refinement);
@@ -55,11 +66,11 @@ class ConvergenceTest {
     return shape;
   }
 
-  std::array<int, GREENC::dim> get_patch_shape(std::array<int, GREENC::dim> grid_shape) {
-    std::array<int, GREENC::dim> patch_shape;
-    std::transform(
-        patch_ratio.cbegin(), patch_ratio.cend(), grid_shape.cbegin(), patch_shape.begin(),
-        [](double r, int n) { return int(std::round(r * n)); });
+  tuple_t get_patch_shape(tuple_t grid_shape) {
+    tuple_t patch_shape;
+    std::transform(patch_ratio.cbegin(), patch_ratio.cend(),
+                   grid_shape.cbegin(), patch_shape.begin(),
+                   [](double r, int n) { return int(std::round(r * n)); });
     return patch_shape;
   }
 
@@ -85,19 +96,8 @@ class ConvergenceTest {
       static_assert(GREENC::dim != 3, "not implemented");
     }
 
-    // TODO: this should be simplified
-    std::array<int, GREENC::dim + 1> tau_shape;
-    std::copy(grid_shape.cbegin(), grid_shape.cend(), tau_shape.begin());
-    tau_shape[GREENC::dim] = GREENC::isize;
-    auto tau_data = reinterpret_cast<fftw_complex *>(tau);
-    auto p = fftw_plan_many_dft(GREENC::dim, tau_shape.data(), GREENC::isize,
-                                tau_data, nullptr, GREENC::isize, 1, tau_data,
-                                nullptr, GREENC::isize, 1, FFTW_FORWARD,
-                                FFTW_ESTIMATE);
-    fftw_execute(p);
-    fftw_destroy_plan(p);
-    // End of simplification
-
+    create_and_execute<scalar_t, GREENC::dim, GREENC::isize>(grid_shape.data(),
+                                                             tau);
     return tau;
   }
 
@@ -113,19 +113,16 @@ class ConvergenceTest {
     tau_shape[GREENC::dim] = GREENC::isize;
 
     // Set eta to the DFT of gamma_h(tau)
-    scapin::MoulinecSuquet94<GREENC> gamma_h{gamma, tau_shape.data(), L.data()};
-    auto eta_shape{tau_shape};
-    eta_shape[GREENC::dim] = GREENC::osize;
-    auto eta_size = std::accumulate(eta_shape.cbegin(), eta_shape.cend(), 1,
-                                    std::multiplies());
+    scapin::MoulinecSuquet94<GREENC> gamma_h{gamma, grid_shape.data(),
+                                             L.data()};
+    auto eta_size = grid_size * GREENC::osize;
     auto eta = new scalar_t[eta_size];
-    auto eta_data = reinterpret_cast<fftw_complex *>(eta);
 
     auto tau_ = tau;
     auto eta_ = eta;
     if constexpr (GREENC::dim == 2) {
-      for (int i0 = 0; i0 < tau_shape[0]; ++i0) {
-        for (int i1 = 0; i1 < tau_shape[1]; ++i1) {
+      for (int i0 = 0; i0 < grid_shape[0]; ++i0) {
+        for (int i1 = 0; i1 < grid_shape[1]; ++i1) {
           std::array<int, GREENC::dim> n{i0, i1};
           gamma_h.apply(n.data(), tau_, eta_);
           // TODO Ugly pointers
@@ -134,9 +131,9 @@ class ConvergenceTest {
         }
       }
     } else if constexpr (GREENC::dim == 3) {
-      for (int i0 = 0; i0 < tau_shape[0]; ++i0) {
-        for (int i1 = 0; i1 < tau_shape[1]; ++i1) {
-          for (int i2 = 0; i2 < tau_shape[2]; ++i2) {
+      for (int i0 = 0; i0 < grid_shape[0]; ++i0) {
+        for (int i1 = 0; i1 < grid_shape[1]; ++i1) {
+          for (int i2 = 0; i2 < grid_shape[2]; ++i2) {
             std::array<int, GREENC::dim> n{i0, i1, i2};
             gamma_h.apply(n.data(), tau_, eta_);
             tau_ += GREENC::isize;
@@ -146,36 +143,28 @@ class ConvergenceTest {
       }
     }
 
-    // TODO -- This should be simplified (xtensor-fftw)
-    auto p = fftw_plan_many_dft(GREENC::dim, eta_shape.data(), GREENC::osize,
-                                eta_data, nullptr, GREENC::osize, 1, eta_data,
-                                nullptr, GREENC::osize, 1, FFTW_BACKWARD,
-                                FFTW_ESTIMATE);
-    fftw_execute(p);
-    fftw_destroy_plan(p);
+    create_and_execute<scalar_t, GREENC::dim, GREENC::osize>(
+        grid_shape.data(), eta, FFTW_BACKWARD);
 
     // Normalize inverse DFT
     for (int i = 0; i < eta_size; i++) {
       eta[i] /= (double)grid_size;
     }
 
-    std::array<int, GREENC::dim + 1> eta_f_shape;
-    std::copy(Nf.cbegin(), Nf.cend(), eta_f_shape.begin());
-    eta_f_shape[GREENC::dim] = gamma.osize;
-    auto eta_f_size = std::accumulate(eta_f_shape.cbegin(), eta_f_shape.cend(),
-                                      1, std::multiplies());
+    auto eta_f_size = std::accumulate(Nf.cbegin(), Nf.cend(), GREENC::osize,
+                                      std::multiplies());
     auto eta_f = new scalar_t[eta_f_size];
     std::array<int, GREENC::dim> ratio{};
-    std::transform(eta_f_shape.cbegin(), eta_f_shape.cend() - 1,
-                   eta_shape.cbegin(), ratio.begin(), std::divides());
+    std::transform(Nf.cbegin(), Nf.cend(), grid_shape.cbegin(), ratio.begin(),
+                   std::divides());
     if constexpr (GREENC::dim == 2) {
-      for (int i0 = 0; i0 < eta_f_shape[0]; ++i0) {
+      for (int i0 = 0; i0 < Nf[0]; ++i0) {
         auto j0 = i0 / ratio[0];
-        for (int i1 = 0; i1 < eta_f_shape[1]; ++i1) {
+        for (int i1 = 0; i1 < Nf[1]; ++i1) {
           auto j1 = i1 / ratio[1];
           for (int k = 0; k < GREENC::osize; ++k) {
-            int i = (i0 * eta_f_shape[1] + i1) * eta_f_shape[2] + k;
-            int j = (j0 * eta_shape[1] + j1) * eta_shape[2] + k;
+            int i = (i0 * Nf[1] + i1) * GREENC::osize + k;
+            int j = (j0 * grid_shape[1] + j1) * GREENC::osize + k;
             eta_f[i] = eta[j];
           }
         }
