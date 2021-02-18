@@ -15,12 +15,11 @@
 
 using scalar_t = std::complex<double>;
 
-auto distance(std::vector<scalar_t> const &x1,
-              std::vector<scalar_t> const &x2) {
-  auto d2 = std::transform_reduce(
-      x1.cbegin(), x1.cend(), x2.cbegin(), scalar_t{0}, std::plus(),
-      [](auto x, auto y) { return std::norm(y - x); });
-  return sqrt(d2);
+template <typename T>
+auto distance(std::vector<T> const &v1, std::vector<T> const &v2) {
+  auto squared_difference = [](T x, T y) { return std::norm(y - x); };
+  return sqrt(std::transform_reduce(v1.cbegin(), v1.cend(), v2.cbegin(), T{0},
+                                    std::plus(), squared_difference));
 }
 
 template <typename T>
