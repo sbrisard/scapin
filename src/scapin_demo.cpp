@@ -55,27 +55,26 @@ class ConvergenceTest {
     return shape;
   }
 
-  std::array<int, GREENC::dim> get_patch_size(std::array<int, GREENC::dim> grid_shape) {
-    std::array<int, GREENC::dim> patch_size;
+  std::array<int, GREENC::dim> get_patch_shape(std::array<int, GREENC::dim> grid_shape) {
+    std::array<int, GREENC::dim> patch_shape;
     std::transform(
-        patch_ratio.cbegin(), patch_ratio.cend(), grid_shape.cbegin(),
-        patch_size.begin(),
+        patch_ratio.cbegin(), patch_ratio.cend(), grid_shape.cbegin(), patch_shape.begin(),
         [](double r, int n) { return int(std::round(r * n)); });
-    return patch_size;
+    return patch_shape;
   }
 
   scalar_t *create_tau_hat(int refinement) {
     auto grid_shape = get_grid_shape(refinement);
     auto tau_size = std::accumulate(grid_shape.cbegin(), grid_shape.cend(),
                                     GREENC::isize, std::multiplies());
-    auto patch_size = get_patch_size(grid_shape);
+    auto patch_shape = get_patch_shape(grid_shape);
     auto tau = new scalar_t[tau_size];
     if constexpr (GREENC::dim == 2) {
       auto tau_ = tau;
       for (int i0 = 0; i0 < grid_shape[0]; i0++) {
-        bool in0 = i0 < patch_size[0];
+        bool in0 = i0 < patch_shape[0];
         for (int i1 = 0; i1 < grid_shape[1]; i1++, tau_ += GREENC::isize) {
-          auto tau_act = in0 && i1 < patch_size[1] ? tau_in : tau_out;
+          auto tau_act = in0 && i1 < patch_shape[1] ? tau_in : tau_out;
           for (int k = 0; k < GREENC::isize; k++) {
             tau_[k] = tau_act[k];
           }
