@@ -45,18 +45,18 @@ void create_and_execute_plan(std::span<int> shape, int howmany,
 template <typename GREENC>
 class ConvergenceTest {
  public:
-  using tuple_t = std::array<int, GREENC::dim>;
+  using shape_t = std::array<int, GREENC::dim>;
   static constexpr int num_refinements = 6;
   const GREENC &gamma;
 
-  tuple_t Nf;
+  shape_t finest_grid_shape;
   std::array<double, GREENC::dim> L, patch_ratio;
   std::array<scalar_t, GREENC::isize> tau_in, tau_out;
 
   explicit ConvergenceTest(GREENC &gamma) : gamma(gamma) {
     static_assert((GREENC::dim == 2) || (GREENC::dim == 3),
                   "unexpected number of spatial dimensions");
-    fill(Nf.begin(), Nf.end(), 512);
+    fill(finest_grid_shape.begin(), finest_grid_shape.end(), 512);
     fill(L.begin(), L.end(), 1.0);
     fill(patch_ratio.begin(), patch_ratio.end(), 0.125);
     fill(tau_in.begin(), tau_in.end(), 0.0);
@@ -64,17 +64,17 @@ class ConvergenceTest {
     fill(tau_out.begin(), tau_out.end(), 0.0);
   }
 
-  tuple_t get_grid_shape(int refinement) {
-    tuple_t shape;
-    std::transform(Nf.cbegin(), Nf.cend(), shape.begin(),
-                   [this, refinement](int n) {
+  shape_t get_grid_shape(int refinement) {
+    shape_t grid_shape;
+    std::transform(finest_grid_shape.cbegin(), finest_grid_shape.cend(),
+                   grid_shape.begin(), [this, refinement](int n) {
                      return n >> (this->num_refinements - 1 - refinement);
                    });
-    return shape;
+    return grid_shape;
   }
 
-  tuple_t get_patch_shape(tuple_t grid_shape) {
-    tuple_t patch_shape;
+  shape_t get_patch_shape(shape_t grid_shape) {
+    shape_t patch_shape;
     std::transform(patch_ratio.cbegin(), patch_ratio.cend(),
                    grid_shape.cbegin(), patch_shape.begin(),
                    [](double r, int n) { return int(std::round(r * n)); });
@@ -159,19 +159,20 @@ class ConvergenceTest {
       eta[i] /= (double)grid_size;
     }
 
-    auto eta_f_size = std::accumulate(Nf.cbegin(), Nf.cend(), GREENC::osize,
-                                      std::multiplies());
+    auto eta_f_size =
+        std::accumulate(finest_grid_shape.cbegin(), finest_grid_shape.cend(),
+                        GREENC::osize, std::multiplies());
     auto eta_f = new scalar_t[eta_f_size];
     std::array<int, GREENC::dim> ratio{};
-    std::transform(Nf.cbegin(), Nf.cend(), grid_shape.cbegin(), ratio.begin(),
-                   std::divides());
+    std::transform(finest_grid_shape.cbegin(), finest_grid_shape.cend(),
+                   grid_shape.cbegin(), ratio.begin(), std::divides());
     if constexpr (GREENC::dim == 2) {
-      for (int i0 = 0; i0 < Nf[0]; ++i0) {
+      for (int i0 = 0; i0 < finest_grid_shape[0]; ++i0) {
         auto j0 = i0 / ratio[0];
-        for (int i1 = 0; i1 < Nf[1]; ++i1) {
+        for (int i1 = 0; i1 < finest_grid_shape[1]; ++i1) {
           auto j1 = i1 / ratio[1];
           for (int k = 0; k < GREENC::osize; ++k) {
-            int i = (i0 * Nf[1] + i1) * GREENC::osize + k;
+            int i = (i0 * finest_grid_shape[1] + i1) * GREENC::osize + k;
             int j = (j0 * grid_shape[1] + j1) * GREENC::osize + k;
             eta_f[i] = eta[j];
           }
@@ -204,7 +205,8 @@ int main() {
   scapin::Hooke<scalar_t, dim> gamma{1.0, 0.3};
   ConvergenceTest<decltype(gamma)> test{gamma};
 
-  auto eta_size = std::accumulate(test.Nf.cbegin(), test.Nf.cend(), gamma.osize,
+  auto eta_size = std::accumulate(test.finest_grid_shape.cbegin(),
+                                  test.finest_grid_shape.cend(), gamma.osize,
                                   std::multiplies());
 
   std::vector<scalar_t *> results(test.num_refinements);
