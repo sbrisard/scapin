@@ -44,6 +44,7 @@ class ConvergenceTest {
  public:
   using shape_t = std::array<int, GREENC::dim>;
   static constexpr int num_refinements = 6;
+
   const GREENC &gamma;
 
   shape_t finest_grid_shape;
@@ -102,7 +103,19 @@ class ConvergenceTest {
       }
     }
     if constexpr (GREENC::dim == 3) {
-      static_assert(GREENC::dim != 3, "not implemented");
+      auto tau_ = tau.data();
+      for (int i0 = 0; i0 < grid_shape[0]; i0++) {
+        bool in0 = i0 < patch_shape[0];
+        for (int i1 = 0; i1 < grid_shape[1]; i1++) {
+          bool in1 = in0 && i1 < patch_shape[1];
+          for (int i2 = 0; i2 < grid_shape[2]; i2++, tau_ += GREENC::isize) {
+            auto tau_act = in1 && i2 < patch_shape[2] ? tau_in : tau_out;
+            for (int k = 0; k < GREENC::isize; k++) {
+              tau_[k] = tau_act[k];
+            }
+          }
+        }
+      }
     }
 
     create_and_execute_plan<scalar_t>(grid_shape, GREENC::isize, tau);
@@ -142,19 +155,25 @@ class ConvergenceTest {
         }
       }
     } else if constexpr (GREENC::dim == 3) {
-      static_assert(GREENC::dim != 3, "check implementation");
-      //      for (size_t i0 = 0; i0 < eta_f_shape[0]; ++i0) {
-      //        size_t j0 = i0 / ratio[0];
-      //        for (size_t i1 = 0; i1 < eta_f_shape[1]; ++i1) {
-      //          size_t j1 = i1 / ratio[1];
-      //          for (size_t i2 = 0; i2 < eta_f_shape[2]; ++i2) {
-      //            size_t j2 = i2 / ratio[2];
-      //            for (size_t i3 = 0; i3 < eta_f_shape[3]; ++i3) {
-      //              eta_f(i0, i1, i2, i3) = eta(j0, j1, j2, i3);
-      //            }
-      //          }
-      //        }
-      //      }
+      for (int i0 = 0; i0 < finest_grid_shape[0]; ++i0) {
+        auto j0 = i0 / ratio[0];
+        for (int i1 = 0; i1 < finest_grid_shape[1]; ++i1) {
+          auto j1 = i1 / ratio[1];
+          for (int i2 = 0; i2 < finest_grid_shape[2]; ++i2) {
+            auto j2 = i2 / ratio[2];
+            for (int k = 0; k < GREENC::osize; ++k) {
+              int i = ((i0 * finest_grid_shape[1] + i1) * finest_grid_shape[2] +
+                       i2) *
+                          GREENC::osize +
+                      k;
+              int j = ((j0 * grid_shape[1] + j1) * grid_shape[2] + j2) *
+                          GREENC::osize +
+                      k;
+              eta_f[i] = eta[j];
+            }
+          }
+        }
+      }
     }
     return eta_f;
   }
