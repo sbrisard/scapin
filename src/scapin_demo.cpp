@@ -12,8 +12,6 @@
 #include "scapin/ms94.hpp"
 #include "scapin/scapin.hpp"
 
-using scalar_t = std::complex<double>;
-
 template <typename T>
 auto distance(std::vector<T> const &v1, std::vector<T> const &v2) {
   auto squared_difference = [](T x, T y) { return std::norm(y - x); };
@@ -48,6 +46,7 @@ void create_and_execute_plan(std::span<int> shape, int howmany,
 template <typename GREENC>
 class ConvergenceTest {
  public:
+  using scalar_t = typename GREENC::Scalar;
   using shape_t = std::array<int, GREENC::dim>;
   static constexpr int num_refinements = 6;
 
@@ -96,7 +95,8 @@ class ConvergenceTest {
 };
 
 template <typename GREENC>
-std::vector<scalar_t> ConvergenceTest<GREENC>::compute_reference() {
+std::vector<typename ConvergenceTest<GREENC>::scalar_t>
+ConvergenceTest<GREENC>::compute_reference() {
   // TODO Use templated scalar types
   auto refinement = num_refinements - 1;
   auto shape = finest_grid_shape;
@@ -136,7 +136,8 @@ std::vector<scalar_t> ConvergenceTest<GREENC>::compute_reference() {
 }
 
 template <typename GREENC>
-std::vector<scalar_t> ConvergenceTest<GREENC>::create_tau_hat(int refinement) {
+std::vector<typename ConvergenceTest<GREENC>::scalar_t>
+ConvergenceTest<GREENC>::create_tau_hat(int refinement) {
   auto grid_shape = get_grid_shape(refinement);
   auto grid_size = std::accumulate(grid_shape.cbegin(), grid_shape.cend(), 1,
                                    std::multiplies());
@@ -169,13 +170,13 @@ std::vector<scalar_t> ConvergenceTest<GREENC>::create_tau_hat(int refinement) {
 }
 
 template <typename GREENC>
-std::vector<scalar_t> ConvergenceTest<GREENC>::run(int refinement) {
+std::vector<typename ConvergenceTest<GREENC>::scalar_t>
+ConvergenceTest<GREENC>::run(int refinement) {
   auto grid_shape = get_grid_shape(refinement);
-  auto grid_size = std::reduce(grid_shape.cbegin(), grid_shape.cend(), 1,
-                               std::multiplies());
+  auto grid_size =
+      std::reduce(grid_shape.cbegin(), grid_shape.cend(), 1, std::multiplies());
   auto tau = create_tau_hat(refinement);
-  scapin::MoulinecSuquet94<GREENC> gamma_h{gamma, grid_shape.data(),
-                                           L.data()};
+  scapin::MoulinecSuquet94<GREENC> gamma_h{gamma, grid_shape.data(), L.data()};
   std::vector<scalar_t> eta(grid_size * GREENC::osize);
   gamma_h.apply(tau.data(), eta.data());
   create_and_execute_plan<scalar_t>(grid_shape, GREENC::osize, eta,
@@ -204,8 +205,7 @@ std::vector<scalar_t> ConvergenceTest<GREENC>::run(int refinement) {
         auto j1 = i1 / ratio[1];
         for (int i2 = 0; i2 < finest_grid_shape[2]; ++i2) {
           auto j2 = i2 / ratio[2];
-          int i =
-              (i0 * finest_grid_shape[1] + i1) * finest_grid_shape[2] + i2;
+          int i = (i0 * finest_grid_shape[1] + i1) * finest_grid_shape[2] + i2;
           int j = (j0 * grid_shape[1] + j1) * grid_shape[2] + j2;
           std::span eta_f_{eta_f.data() + i * GREENC::osize, GREENC::osize};
           std::span eta_{eta.data() + j * GREENC::osize, GREENC::osize};
@@ -219,10 +219,11 @@ std::vector<scalar_t> ConvergenceTest<GREENC>::run(int refinement) {
 
 int main() {
   const int dim = 2;
-  scapin::Hooke<scalar_t, dim> gamma{1.0, 0.3};
+  scapin::Hooke<std::complex<double>, dim> gamma{1.0, 0.3};
   ConvergenceTest<decltype(gamma)> test{gamma};
 
-  std::vector<std::vector<scalar_t>> results(test.num_refinements);
+  std::vector<std::vector<typename decltype(gamma)::Scalar>> results(
+      test.num_refinements);
   for (int r = 0; r < test.num_refinements; r++) {
     results[r] = test.run(r);
   }
