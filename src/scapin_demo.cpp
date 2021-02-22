@@ -91,56 +91,8 @@ class ConvergenceTest {
   }
 
   std::vector<scalar_t> compute_reference();
-
   std::vector<scalar_t> create_tau_hat(int refinement);
-
-  std::vector<scalar_t> run(int refinement) {
-    auto grid_shape = get_grid_shape(refinement);
-    auto grid_size = std::reduce(grid_shape.cbegin(), grid_shape.cend(), 1,
-                                 std::multiplies());
-    auto tau = create_tau_hat(refinement);
-    scapin::MoulinecSuquet94<GREENC> gamma_h{gamma, grid_shape.data(),
-                                             L.data()};
-    std::vector<scalar_t> eta(grid_size * GREENC::osize);
-    gamma_h.apply(tau.data(), eta.data());
-    create_and_execute_plan<scalar_t>(grid_shape, GREENC::osize, eta,
-                                      FFTW_BACKWARD);
-
-    std::vector<scalar_t> eta_f(finest_grid_size * GREENC::osize);
-    std::array<int, GREENC::dim> ratio{};
-    std::transform(finest_grid_shape.cbegin(), finest_grid_shape.cend(),
-                   grid_shape.cbegin(), ratio.begin(), std::divides());
-    if constexpr (GREENC::dim == 2) {
-      for (int i0 = 0; i0 < finest_grid_shape[0]; ++i0) {
-        auto j0 = i0 / ratio[0];
-        for (int i1 = 0; i1 < finest_grid_shape[1]; ++i1) {
-          auto j1 = i1 / ratio[1];
-          auto i = i0 * finest_grid_shape[1] + i1;
-          auto j = j0 * grid_shape[1] + j1;
-          std::span eta_f_{eta_f.data() + i * GREENC::osize, GREENC::osize};
-          std::span eta_{eta.data() + j * GREENC::osize, GREENC::osize};
-          std::copy(eta_.cbegin(), eta_.cend(), eta_f_.begin());
-        }
-      }
-    } else if constexpr (GREENC::dim == 3) {
-      for (int i0 = 0; i0 < finest_grid_shape[0]; ++i0) {
-        auto j0 = i0 / ratio[0];
-        for (int i1 = 0; i1 < finest_grid_shape[1]; ++i1) {
-          auto j1 = i1 / ratio[1];
-          for (int i2 = 0; i2 < finest_grid_shape[2]; ++i2) {
-            auto j2 = i2 / ratio[2];
-            int i =
-                (i0 * finest_grid_shape[1] + i1) * finest_grid_shape[2] + i2;
-            int j = (j0 * grid_shape[1] + j1) * grid_shape[2] + j2;
-            std::span eta_f_{eta_f.data() + i * GREENC::osize, GREENC::osize};
-            std::span eta_{eta.data() + j * GREENC::osize, GREENC::osize};
-            std::copy(eta_.cbegin(), eta_.cend(), eta_f_.begin());
-          }
-        }
-      }
-    }
-    return eta_f;
-  }
+  std::vector<scalar_t> run(int refinement);
 };
 
 template <typename GREENC>
@@ -214,6 +166,55 @@ std::vector<scalar_t> ConvergenceTest<GREENC>::create_tau_hat(int refinement) {
   }
   create_and_execute_plan<scalar_t>(grid_shape, GREENC::isize, tau);
   return tau;
+}
+
+template <typename GREENC>
+std::vector<scalar_t> ConvergenceTest<GREENC>::run(int refinement) {
+  auto grid_shape = get_grid_shape(refinement);
+  auto grid_size = std::reduce(grid_shape.cbegin(), grid_shape.cend(), 1,
+                               std::multiplies());
+  auto tau = create_tau_hat(refinement);
+  scapin::MoulinecSuquet94<GREENC> gamma_h{gamma, grid_shape.data(),
+                                           L.data()};
+  std::vector<scalar_t> eta(grid_size * GREENC::osize);
+  gamma_h.apply(tau.data(), eta.data());
+  create_and_execute_plan<scalar_t>(grid_shape, GREENC::osize, eta,
+                                    FFTW_BACKWARD);
+
+  std::vector<scalar_t> eta_f(finest_grid_size * GREENC::osize);
+  std::array<int, GREENC::dim> ratio{};
+  std::transform(finest_grid_shape.cbegin(), finest_grid_shape.cend(),
+                 grid_shape.cbegin(), ratio.begin(), std::divides());
+  if constexpr (GREENC::dim == 2) {
+    for (int i0 = 0; i0 < finest_grid_shape[0]; ++i0) {
+      auto j0 = i0 / ratio[0];
+      for (int i1 = 0; i1 < finest_grid_shape[1]; ++i1) {
+        auto j1 = i1 / ratio[1];
+        auto i = i0 * finest_grid_shape[1] + i1;
+        auto j = j0 * grid_shape[1] + j1;
+        std::span eta_f_{eta_f.data() + i * GREENC::osize, GREENC::osize};
+        std::span eta_{eta.data() + j * GREENC::osize, GREENC::osize};
+        std::copy(eta_.cbegin(), eta_.cend(), eta_f_.begin());
+      }
+    }
+  } else if constexpr (GREENC::dim == 3) {
+    for (int i0 = 0; i0 < finest_grid_shape[0]; ++i0) {
+      auto j0 = i0 / ratio[0];
+      for (int i1 = 0; i1 < finest_grid_shape[1]; ++i1) {
+        auto j1 = i1 / ratio[1];
+        for (int i2 = 0; i2 < finest_grid_shape[2]; ++i2) {
+          auto j2 = i2 / ratio[2];
+          int i =
+              (i0 * finest_grid_shape[1] + i1) * finest_grid_shape[2] + i2;
+          int j = (j0 * grid_shape[1] + j1) * grid_shape[2] + j2;
+          std::span eta_f_{eta_f.data() + i * GREENC::osize, GREENC::osize};
+          std::span eta_{eta.data() + j * GREENC::osize, GREENC::osize};
+          std::copy(eta_.cbegin(), eta_.cend(), eta_f_.begin());
+        }
+      }
+    }
+  }
+  return eta_f;
 }
 
 int main() {
