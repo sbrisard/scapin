@@ -85,43 +85,7 @@ class ConvergenceTest {
 
   std::vector<scalar_t> compute_reference();
 
-  std::vector<scalar_t> create_tau_hat(int refinement) {
-    auto grid_shape = get_grid_shape(refinement);
-    auto grid_size = std::accumulate(grid_shape.cbegin(), grid_shape.cend(), 1,
-                                     std::multiplies());
-    auto patch_shape = get_patch_shape(grid_shape);
-    std::vector<scalar_t> tau(grid_size * GREENC::isize);
-    if constexpr (GREENC::dim == 2) {
-      auto tau_ = tau.data();
-      for (int i0 = 0; i0 < grid_shape[0]; i0++) {
-        bool in0 = i0 < patch_shape[0];
-        for (int i1 = 0; i1 < grid_shape[1]; i1++, tau_ += GREENC::isize) {
-          auto tau_act = in0 && i1 < patch_shape[1] ? tau_in : tau_out;
-          for (int k = 0; k < GREENC::isize; k++) {
-            tau_[k] = tau_act[k];
-          }
-        }
-      }
-    }
-    if constexpr (GREENC::dim == 3) {
-      auto tau_ = tau.data();
-      for (int i0 = 0; i0 < grid_shape[0]; i0++) {
-        bool in0 = i0 < patch_shape[0];
-        for (int i1 = 0; i1 < grid_shape[1]; i1++) {
-          bool in1 = in0 && i1 < patch_shape[1];
-          for (int i2 = 0; i2 < grid_shape[2]; i2++, tau_ += GREENC::isize) {
-            auto tau_act = in1 && i2 < patch_shape[2] ? tau_in : tau_out;
-            for (int k = 0; k < GREENC::isize; k++) {
-              tau_[k] = tau_act[k];
-            }
-          }
-        }
-      }
-    }
-
-    create_and_execute_plan<scalar_t>(grid_shape, GREENC::isize, tau);
-    return tau;
-  }
+  std::vector<scalar_t> create_tau_hat(int refinement);
 
   std::vector<scalar_t> run(int refinement) {
     auto grid_shape = get_grid_shape(refinement);
@@ -221,6 +185,39 @@ std::vector<scalar_t> ConvergenceTest<GREENC>::compute_reference() {
   std::transform(eta.cbegin(), eta.cend(), eta.begin(),
                  [factor](auto x) { return factor * x; });
   return eta;
+}
+
+template <typename GREENC>
+std::vector<scalar_t> ConvergenceTest<GREENC>::create_tau_hat(int refinement) {
+  auto grid_shape = get_grid_shape(refinement);
+  auto grid_size = std::accumulate(grid_shape.cbegin(), grid_shape.cend(), 1,
+                                   std::multiplies());
+  auto patch_shape = get_patch_shape(grid_shape);
+  std::vector<scalar_t> tau(grid_size * GREENC::isize);
+  for (int i = 0, offset = 0; i < grid_size; i++, offset += GREENC::isize) {
+    std::copy(tau_out.cbegin(), tau_out.cend(), tau.data() + offset);
+  }
+  if constexpr (GREENC::dim == 2) {
+    for (int i0 = 0; i0 < patch_shape[0]; i0++) {
+      auto tau_ = tau.data() + (i0 * grid_shape[1] * GREENC::isize);
+      for (int i1 = 0; i1 < patch_shape[1]; i1++, tau_ += GREENC::isize) {
+        std::copy(tau_in.cbegin(), tau_in.cend(), tau_);
+      }
+    }
+  }
+  if constexpr (GREENC::dim == 3) {
+    for (int i0 = 0; i0 < patch_shape[0]; i0++) {
+      for (int i1 = 0; i1 < grid_shape[1]; i1++) {
+        auto offset = (i0 * grid_shape[1] + i1) * grid_shape[2] * GREENC::isize;
+        auto tau_ = tau.data() + offset;
+        for (int i2 = 0; i2 < grid_shape[2]; i2++, tau_ += GREENC::isize) {
+          std::copy(tau_in.cbegin(), tau_in.cend(), tau_);
+        }
+      }
+    }
+  }
+  create_and_execute_plan<scalar_t>(grid_shape, GREENC::isize, tau);
+  return tau;
 }
 
 int main() {
