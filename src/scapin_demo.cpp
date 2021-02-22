@@ -34,6 +34,13 @@ void create_and_execute_plan(std::span<int> shape, int howmany,
   auto p =
       fftw_plan_many_dft(shape.size(), shape.data(), howmany, in_, nullptr,
                          howmany, 1, in_, nullptr, howmany, 1, sign, flags);
+  if (sign == FFTW_BACKWARD) {
+    int size =
+        std::accumulate(shape.cbegin(), shape.cend(), 1, std::multiplies());
+    double factor = 1. / (double)size;
+    std::transform(in.cbegin(), in.cend(), in.begin(),
+                   [factor](auto x) { return factor * x; });
+  }
   fftw_execute(p);
   fftw_destroy_plan(p);
 }
@@ -98,10 +105,6 @@ class ConvergenceTest {
     gamma_h.apply(tau.data(), eta.data());
     create_and_execute_plan<scalar_t>(grid_shape, GREENC::osize, eta,
                                       FFTW_BACKWARD);
-
-    double factor = 1. / (double)grid_size;
-    std::transform(eta.cbegin(), eta.cend(), eta.begin(),
-                   [factor](auto x) { return factor * x; });
 
     std::vector<scalar_t> eta_f(finest_grid_size * GREENC::osize);
     std::array<int, GREENC::dim> ratio{};
@@ -181,9 +184,6 @@ std::vector<scalar_t> ConvergenceTest<GREENC>::compute_reference() {
     }
   }
   create_and_execute_plan<scalar_t>(shape, GREENC::osize, eta, FFTW_BACKWARD);
-  double factor = 1. / (double)size;
-  std::transform(eta.cbegin(), eta.cend(), eta.begin(),
-                 [factor](auto x) { return factor * x; });
   return eta;
 }
 
