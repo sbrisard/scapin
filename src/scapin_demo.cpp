@@ -1,7 +1,6 @@
 #include <array>
 #include <cmath>
 #include <complex>
-#include <functional>
 #include <iostream>
 #include <numeric>
 #include <span>
@@ -83,6 +82,8 @@ class ConvergenceTest {
                    [](double r, int n) { return int(std::round(r * n)); });
     return patch_shape;
   }
+
+  std::vector<scalar_t> compute_reference();
 
   std::vector<scalar_t> create_tau_hat(int refinement) {
     auto grid_shape = get_grid_shape(refinement);
@@ -179,6 +180,49 @@ class ConvergenceTest {
   }
 };
 
+template <typename GREENC>
+std::vector<scalar_t> ConvergenceTest<GREENC>::compute_reference() {
+  // TODO Use templated scalar types
+  auto refinement = num_refinements - 1;
+  auto shape = finest_grid_shape;
+  auto size = finest_grid_size;
+  bri17::CartesianGrid<double, GREENC::dim> grid{shape, L};
+  bri17::Hooke<double, GREENC::dim> hooke{gamma.mu, gamma.nu, grid};
+  auto tau = create_tau_hat(refinement);
+  std::vector<scalar_t> eta(size * GREENC::osize);
+
+  if constexpr (GREENC::dim == 2) {
+    auto tau_ = tau.data();
+    auto eta_ = eta.data();
+    std::array<int, GREENC::dim> k{};
+    for (k[0] = 0; k[0] < shape[0]; k[0]++) {
+      for (k[1] = 0; k[1] < shape[1]; k[1]++) {
+        hooke.modal_eigenstress_to_opposite_strain(k.data(), tau_, eta_);
+        tau_ += GREENC::isize;
+        eta_ += GREENC::osize;
+      }
+    }
+  } else if constexpr (GREENC::dim == 3) {
+    auto tau_ = tau.data();
+    auto eta_ = eta.data();
+    std::array<int, GREENC::dim> k{};  // Frequency multi-index
+    for (k[0] = 0; k[0] < shape[0]; k[0]++) {
+      for (k[1] = 0; k[1] < shape[1]; k[1]++) {
+        for (k[2] = 0; k[2] < shape[2]; k[2]++) {
+          hooke.modal_eigenstress_to_opposite_strain(k.data(), tau_, eta_);
+          tau_ += GREENC::isize;
+          eta_ += GREENC::osize;
+        }
+      }
+    }
+  }
+  create_and_execute_plan<scalar_t>(shape, GREENC::osize, eta, FFTW_BACKWARD);
+  double factor = 1. / (double)size;
+  std::transform(eta.cbegin(), eta.cend(), eta.begin(),
+                 [factor](auto x) { return factor * x; });
+  return eta;
+}
+
 int main() {
   const int dim = 2;
   scapin::Hooke<scalar_t, dim> gamma{1.0, 0.3};
@@ -189,7 +233,8 @@ int main() {
     results[r] = test.run(r);
   }
 
-  auto eta_ref = *results.rbegin();
+  // auto eta_ref = *results.rbegin();
+  auto eta_ref = test.compute_reference();
   for (auto const &eta : results) {
     auto err = distance(eta, eta_ref);
     std::cout << err << std::endl;
