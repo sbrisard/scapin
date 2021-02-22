@@ -115,11 +115,11 @@ class ConvergenceTest {
         auto j0 = i0 / ratio[0];
         for (int i1 = 0; i1 < finest_grid_shape[1]; ++i1) {
           auto j1 = i1 / ratio[1];
-          for (int k = 0; k < GREENC::osize; ++k) {
-            int i = (i0 * finest_grid_shape[1] + i1) * GREENC::osize + k;
-            int j = (j0 * grid_shape[1] + j1) * GREENC::osize + k;
-            eta_f[i] = eta[j];
-          }
+          auto i = i0 * finest_grid_shape[1] + i1;
+          auto j = j0 * grid_shape[1] + j1;
+          std::span eta_f_{eta_f.data() + i * GREENC::osize, GREENC::osize};
+          std::span eta_{eta.data() + j * GREENC::osize, GREENC::osize};
+          std::copy(eta_.cbegin(), eta_.cend(), eta_f_.begin());
         }
       }
     } else if constexpr (GREENC::dim == 3) {
@@ -129,16 +129,12 @@ class ConvergenceTest {
           auto j1 = i1 / ratio[1];
           for (int i2 = 0; i2 < finest_grid_shape[2]; ++i2) {
             auto j2 = i2 / ratio[2];
-            for (int k = 0; k < GREENC::osize; ++k) {
-              int i = ((i0 * finest_grid_shape[1] + i1) * finest_grid_shape[2] +
-                       i2) *
-                          GREENC::osize +
-                      k;
-              int j = ((j0 * grid_shape[1] + j1) * grid_shape[2] + j2) *
-                          GREENC::osize +
-                      k;
-              eta_f[i] = eta[j];
-            }
+            int i =
+                (i0 * finest_grid_shape[1] + i1) * finest_grid_shape[2] + i2;
+            int j = (j0 * grid_shape[1] + j1) * grid_shape[2] + j2;
+            std::span eta_f_{eta_f.data() + i * GREENC::osize, GREENC::osize};
+            std::span eta_{eta.data() + j * GREENC::osize, GREENC::osize};
+            std::copy(eta_.cbegin(), eta_.cend(), eta_f_.begin());
           }
         }
       }
