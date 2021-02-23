@@ -1,4 +1,5 @@
 #pragma once
+#include <complex>
 
 #if _WIN32
 #define DllExport __declspec(dllexport)
