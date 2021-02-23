@@ -3,10 +3,19 @@
 #include <stdexcept>
 
 #include "catch2/catch.hpp"
+
+#include <Eigen/Dense>
+
 #include "scapin/hooke.hpp"
 
 template <int DIM>
 inline constexpr int sym = (DIM * (DIM + 1)) / 2;
+
+template <int DIM>
+using Tensor2 = Eigen::Matrix<double, sym<DIM>, 1>;
+
+template <int DIM>
+using Tensor4 = Eigen::Matrix<double, sym<DIM>, sym<DIM>>;
 
 template <int DIM>
 std::pair<int, int> unravel_index(int ij);
@@ -65,6 +74,31 @@ void green_operator_matrix(std::array<double, DIM> const &n, double nu,
                    0.5 * n[i] * n[j] * n[k] * n[l] / (1. - nu));
     }
   }
+}
+
+template <int DIM>
+double bulk_modulus(double mu, double nu);
+
+template <>
+double bulk_modulus<2>(double mu, double nu) {
+  return mu / (1. - 2. * nu);
+}
+
+template <>
+double bulk_modulus<3>(double mu, double nu) {
+  return 2. * mu * (1. + nu) / 3. / (1. - 2. * nu);
+}
+
+template <int DIM>
+Tensor4<DIM> stiffness_matrix(double mu, double nu) {
+  Tensor2<DIM> I2 = Tensor2<DIM>::Zero();
+  for (int i = 0; i < DIM; i++) I2(i, 0) = 1.;
+  Tensor4<DIM> I = Tensor4<DIM>::Identity();
+  Tensor4<DIM> J = I2 * I2.transpose() / DIM;
+  Tensor4<DIM> K = I - J;
+  double kappa = bulk_modulus<DIM>(mu, nu);
+  Tensor4<DIM> C = DIM * kappa * J + 2 * mu * K;
+  return C;
 }
 
 std::vector<std::array<double, 2>> gen_directions(int num_theta) {
@@ -134,11 +168,36 @@ void test_hooke_apply() {
   }
 }
 
+template <int DIM>
+void test_apply_stiffness() {
+  scapin::Hooke<double, DIM> gamma{1.2, 0.3};
+  Tensor4<DIM> C_exp = stiffness_matrix<DIM>(gamma.mu, gamma.nu);
+  Tensor4<DIM> C_act;
+  Tensor2<DIM> eps = Tensor2<DIM>::Zero();
+  Tensor2<DIM> sig = Tensor2<DIM>::Zero();
+  for (int i = 0; i < sym<DIM>; i++) {
+    eps(i, 0) = 1.0;
+    gamma.apply_stiffness(eps.data(), sig.data());
+    C_act.col(i) = sig;
+    eps(i, 0) = 0.0;
+  }
+
+  for (int i = 0; i < sym<DIM>; i++) {
+    for (int j = 0; j < sym<DIM>; j++) {
+      REQUIRE(C_act(i, j) == Approx(C_exp(i, j)).epsilon(1e-15).margin(1e-15));
+    }
+  }
+}
+
 TEST_CASE("Continuous Green operator") {
   SECTION("Hooke model") {
     SECTION("Apply") {
       SECTION("2D") { test_hooke_apply<2>(); }
       SECTION("3D") { test_hooke_apply<3>(); }
+    }
+    SECTION("apply_stiffness") {
+      SECTION("2D") { test_apply_stiffness<2>(); }
+      SECTION("3D") { test_apply_stiffness<3>(); }
     }
   }
 }

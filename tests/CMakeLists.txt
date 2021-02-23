@@ -11,7 +11,8 @@ if (MATH_LIBRARY)
     target_link_libraries(test_scapin ${MATH_LIBRARY})
 endif ()
 
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(Catch2 REQUIRED)
-target_link_libraries(test_scapin PRIVATE scapin Catch2::Catch2)
+target_link_libraries(test_scapin PRIVATE scapin Catch2::Catch2 Eigen3::Eigen)
 
 add_test(NAME test_scapin COMMAND test_scapin)

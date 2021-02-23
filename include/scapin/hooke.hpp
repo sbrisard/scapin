@@ -7,21 +7,25 @@
 #include "core.hpp"
 
 namespace scapin {
+
 template <typename T, int DIM>
 requires spatial_dimension<DIM> class Hooke {
  public:
   static constexpr int dim = DIM;
   static constexpr int isize = (DIM * (DIM + 1)) / 2;
   static constexpr int osize = (DIM * (DIM + 1)) / 2;
+
   using Scalar = typename T;
   using Real = remove_complex_t<T>;
 
   Real const mu;
   Real const nu;
   Real const atol;
+  Real const lambda;
+
   Hooke(Real const mu, Real const nu,
         Real const atol = 10 * std::numeric_limits<Real>::epsilon())
-      : mu(mu), nu(nu), atol(atol) {}
+      : mu(mu), nu(nu), atol(atol), lambda(2 * mu * nu / (1 - 2 * nu)) {}
 
   std::string repr() const {
     std::ostringstream stream;
@@ -77,10 +81,21 @@ requires spatial_dimension<DIM> class Hooke {
     if constexpr (DIM == 3) apply(k[0], k[1], k[2], tau, out);
   }
 
-  void stress_strain(T const* sig, T* eps) const {
+  void apply_stiffness(T const* eps, T* sig) const {
     if constexpr (DIM == 2) {
-      auto lambda = 0.;
-      auto tr_eps = eps[0] + eps[1];
+      auto lambda_tr_eps = lambda * (eps[0] + eps[1]);
+      sig[0] = lambda_tr_eps + 2 * mu * eps[0];
+      sig[1] = lambda_tr_eps + 2 * mu * eps[1];
+      sig[2] = 2 * mu * eps[2];
+    }
+    if constexpr (DIM == 3) {
+      auto lambda_tr_eps = lambda * (eps[0] + eps[1] + eps[2]);
+      sig[0] = lambda_tr_eps + 2 * mu * eps[0];
+      sig[1] = lambda_tr_eps + 2 * mu * eps[1];
+      sig[2] = lambda_tr_eps + 2 * mu * eps[2];
+      sig[3] = 2 * mu * eps[3];
+      sig[4] = 2 * mu * eps[4];
+      sig[5] = 2 * mu * eps[5];
     }
   }
 };
