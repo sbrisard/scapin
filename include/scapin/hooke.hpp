@@ -5,9 +5,10 @@
 #include <ostream>
 
 #include "core.hpp"
+
 namespace scapin {
 template <typename T, int DIM>
-class Hooke {
+requires spatial_dimension<DIM> class Hooke {
  public:
   static constexpr int dim = DIM;
   static constexpr int isize = (DIM * (DIM + 1)) / 2;
@@ -33,14 +34,16 @@ class Hooke {
 };
 
 template <typename T, int DIM>
-void Hooke<T, DIM>::apply(double kx, double ky, const T* tau, T* out) const {
+requires spatial_dimension<DIM> void Hooke<T, DIM>::apply(double kx, double ky,
+                                                          const T* tau,
+                                                          T* out) const {
   static_assert(DIM == 2, "should only be called when DIM == 2");
   auto k2 = kx * kx + ky * ky;
   if (k2 <= atol) {
     for (int i = 0; i < osize; i++) out[i] = 0;
   } else {
     auto tau_k_x = tau[0] * kx + tau[2] * ky / std::numbers::sqrt2;
-    auto tau_k_y = tau[1] * ky + tau[2] * kx/ std::numbers::sqrt2;
+    auto tau_k_y = tau[1] * ky + tau[2] * kx / std::numbers::sqrt2;
     auto n_tau_n = (kx * tau_k_x + ky * tau_k_y) / k2;
     auto const1 = n_tau_n / (1. - nu);
     auto const2 = 1. / (2. * mu * k2);
@@ -52,16 +55,21 @@ void Hooke<T, DIM>::apply(double kx, double ky, const T* tau, T* out) const {
 }
 
 template <typename T, int DIM>
-void Hooke<T, DIM>::apply(double kx, double ky, double kz, const T* tau,
-                          T* out) const {
+requires spatial_dimension<DIM> void Hooke<T, DIM>::apply(double kx, double ky,
+                                                          double kz,
+                                                          const T* tau,
+                                                          T* out) const {
   static_assert(DIM == 3, "should only be called when DIM == 3");
   auto k2 = kx * kx + ky * ky + kz * kz;
   if (k2 <= atol) {
     for (int i = 0; i < osize; i++) out[i] = 0;
   } else {
-    auto tau_k_x = tau[0] * kx + (tau[5] * ky + tau[4] * kz)/std::numbers::sqrt2;
-    auto tau_k_y = tau[1] * ky + (tau[5] * kx + tau[3] * kz)/std::numbers::sqrt2;
-    auto tau_k_z = tau[2] * kz + (tau[4] * kx + tau[3] * ky)/std::numbers::sqrt2;
+    auto tau_k_x =
+        tau[0] * kx + (tau[5] * ky + tau[4] * kz) / std::numbers::sqrt2;
+    auto tau_k_y =
+        tau[1] * ky + (tau[5] * kx + tau[3] * kz) / std::numbers::sqrt2;
+    auto tau_k_z =
+        tau[2] * kz + (tau[4] * kx + tau[3] * ky) / std::numbers::sqrt2;
     auto n_tau_n = (kx * tau_k_x + ky * tau_k_y + kz * tau_k_z) / k2;
     auto const1 = n_tau_n / (1. - nu);
     auto const2 = 1. / (2. * mu * k2);
@@ -76,7 +84,9 @@ void Hooke<T, DIM>::apply(double kx, double ky, double kz, const T* tau,
 }
 
 template <typename T, int DIM>
-void Hooke<T, DIM>::apply(const double* k, const T* tau, T* out) const {
+requires spatial_dimension<DIM> void Hooke<T, DIM>::apply(const double* k,
+                                                          const T* tau,
+                                                          T* out) const {
   if constexpr (DIM == 2) apply(k[0], k[1], tau, out);
   if constexpr (DIM == 3) apply(k[0], k[1], k[2], tau, out);
 }

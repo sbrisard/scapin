@@ -7,6 +7,9 @@
 #endif
 
 namespace scapin {
+template <int DIM>
+concept spatial_dimension = (DIM == 2) || (DIM == 3);
+
 template <typename T>
 int dimensionality();
 
