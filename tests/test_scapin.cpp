@@ -92,15 +92,29 @@ double bulk_modulus<3>(double mu, double nu) {
 }
 
 template <int DIM>
-Tensor4<DIM> stiffness_matrix(double mu, double nu) {
+std::pair<Tensor4<DIM>, Tensor4<DIM>> isotropic_projectors() {
   Tensor2<DIM> I2 = Tensor2<DIM>::Zero();
   for (int i = 0; i < DIM; i++) I2(i) = 1.;
   Tensor4<DIM> I = Tensor4<DIM>::Identity();
   Tensor4<DIM> J = I2 * I2.transpose() / DIM;
   Tensor4<DIM> K = I - J;
-  double kappa = bulk_modulus<DIM>(mu, nu);
+  return std::make_pair(J, K);
+}
+
+template <int DIM>
+Tensor4<DIM> stiffness_matrix(double mu, double nu) {
+  auto const [J, K] = isotropic_projectors<DIM>();
+  auto kappa = bulk_modulus<DIM>(mu, nu);
   Tensor4<DIM> C = DIM * kappa * J + 2 * mu * K;
   return C;
+}
+
+template <int DIM>
+Tensor4<DIM> compliance_matrix(double mu, double nu) {
+  auto const [J, K] = isotropic_projectors<DIM>();
+  auto kappa = bulk_modulus<DIM>(mu, nu);
+  Tensor4<DIM> S = J / (DIM * kappa) + K / (2 * mu);
+  return S;
 }
 
 std::vector<Vector<2>> gen_directions(int num_theta) {
@@ -152,7 +166,7 @@ void test_hooke_apply() {
         gamma.apply(k.data(), tau.data(), eps.data());
         act.col(i) = eps;
       }
-      for (int i = 0; i < sym<DIM> ; ++i) {
+      for (int i = 0; i < sym<DIM>; ++i) {
         for (int j = 0; j < sym<DIM>; ++j) {
           REQUIRE(act(i, j) == Approx(exp(i, j)).epsilon(1e-12).margin(1e-12));
         }
@@ -182,6 +196,27 @@ void test_apply_stiffness() {
   }
 }
 
+template <int DIM>
+void test_apply_compliance() {
+  scapin::Hooke<double, DIM> gamma{1.2, 0.3};
+  Tensor4<DIM> S_exp = compliance_matrix<DIM>(gamma.mu, gamma.nu);
+  Tensor4<DIM> S_act;
+  Tensor2<DIM> eps = Tensor2<DIM>::Zero();
+  Tensor2<DIM> sig = Tensor2<DIM>::Zero();
+  for (int i = 0; i < sym<DIM>; i++) {
+    sig(i) = 1.0;
+    gamma.apply_compliance(sig.data(), eps.data());
+    S_act.col(i) = eps;
+    sig(i) = 0.0;
+  }
+
+  for (int i = 0; i < sym<DIM>; i++) {
+    for (int j = 0; j < sym<DIM>; j++) {
+      REQUIRE(S_act(i, j) == Approx(S_exp(i, j)).epsilon(1e-15).margin(1e-15));
+    }
+  }
+}
+
 TEST_CASE("Continuous Green operator") {
   SECTION("Hooke model") {
     SECTION("Apply") {
@@ -191,6 +226,10 @@ TEST_CASE("Continuous Green operator") {
     SECTION("apply_stiffness") {
       SECTION("2D") { test_apply_stiffness<2>(); }
       SECTION("3D") { test_apply_stiffness<3>(); }
+    }
+    SECTION("apply_compliance") {
+      SECTION("2D") { test_apply_compliance<2>(); }
+      SECTION("3D") { test_apply_compliance<3>(); }
     }
   }
 }

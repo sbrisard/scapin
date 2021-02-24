@@ -20,12 +20,19 @@ requires spatial_dimension<DIM> class Hooke {
 
   Real const mu;
   Real const nu;
-  Real const atol;
   Real const lambda;
+  Real compliance_I;
+  Real compliance_II;
+  Real const atol;
 
   Hooke(Real const mu, Real const nu,
         Real const atol = 10 * std::numeric_limits<Real>::epsilon())
-      : mu(mu), nu(nu), atol(atol), lambda(2 * mu * nu / (1 - 2 * nu)) {}
+      : mu{mu},
+        nu{nu},
+        lambda{2 * mu * nu / (1 - 2 * nu)},
+        compliance_I{1 / (2 * mu)},
+        compliance_II{DIM == 2 ? nu / (2 * mu) : nu / (2 * mu * (1 + nu))},
+        atol{atol} {}
 
   std::string repr() const {
     std::ostringstream stream;
@@ -84,18 +91,36 @@ requires spatial_dimension<DIM> class Hooke {
   void apply_stiffness(T const* eps, T* sig) const {
     if constexpr (DIM == 2) {
       auto lambda_tr_eps = lambda * (eps[0] + eps[1]);
-      sig[0] = lambda_tr_eps + 2 * mu * eps[0];
-      sig[1] = lambda_tr_eps + 2 * mu * eps[1];
+      sig[0] = 2 * mu * eps[0] + lambda_tr_eps;
+      sig[1] = 2 * mu * eps[1] + lambda_tr_eps;
       sig[2] = 2 * mu * eps[2];
     }
     if constexpr (DIM == 3) {
       auto lambda_tr_eps = lambda * (eps[0] + eps[1] + eps[2]);
-      sig[0] = lambda_tr_eps + 2 * mu * eps[0];
-      sig[1] = lambda_tr_eps + 2 * mu * eps[1];
-      sig[2] = lambda_tr_eps + 2 * mu * eps[2];
+      sig[0] = 2 * mu * eps[0] + lambda_tr_eps;
+      sig[1] = 2 * mu * eps[1] + lambda_tr_eps;
+      sig[2] = 2 * mu * eps[2] + lambda_tr_eps;
       sig[3] = 2 * mu * eps[3];
       sig[4] = 2 * mu * eps[4];
       sig[5] = 2 * mu * eps[5];
+    }
+  }
+
+  void apply_compliance(T const* sig, T* eps) const {
+    if constexpr (DIM == 2) {
+      auto compliance_II_tr_sig = compliance_II * (sig[0] + sig[1]);
+      eps[0] = compliance_I * sig[0] - compliance_II_tr_sig;
+      eps[1] = compliance_I * sig[1] - compliance_II_tr_sig;
+      eps[2] = compliance_I * sig[2];
+    }
+    if constexpr (DIM == 3) {
+      auto compliance_II_tr_sig = compliance_II * (sig[0] + sig[1] + sig[2]);
+      eps[0] = compliance_I * sig[0] - compliance_II_tr_sig;
+      eps[1] = compliance_I * sig[1] - compliance_II_tr_sig;
+      eps[2] = compliance_I * sig[2] - compliance_II_tr_sig;
+      eps[3] = compliance_I * sig[3];
+      eps[4] = compliance_I * sig[4];
+      eps[5] = compliance_I * sig[5];
     }
   }
 };
