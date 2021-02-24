@@ -57,28 +57,6 @@ std::pair<int, int> unravel_index<3>(int ij) {
 }
 
 template <int DIM>
-Tensor4<DIM> green_operator_matrix(Vector<DIM> const &n, double nu) {
-  Tensor4<DIM> out;
-  for (int ij = 0; ij < sym<DIM>; ij++) {
-    auto const [i, j] = unravel_index<DIM>(ij);
-    double const w_ij = ij < DIM ? 1. : std::numbers::sqrt2;
-    for (int kl = 0; kl < sym<DIM>; kl++) {
-      auto const [k, l] = unravel_index<DIM>(kl);
-      double const w_kl = kl < DIM ? 1. : std::numbers::sqrt2;
-      double const delta_ik = i == k ? 1. : 0.;
-      double const delta_il = i == l ? 1. : 0.;
-      double const delta_jk = j == k ? 1. : 0.;
-      double const delta_jl = j == l ? 1. : 0.;
-      out(ij, kl) = w_ij * w_kl *
-                    (0.25 * (delta_ik * n(j) * n(l) + delta_il * n(j) * n(k) +
-                             delta_jk * n(i) * n(l) + delta_jl * n(i) * n(k)) -
-                     0.5 * n(i) * n(j) * n(k) * n(l) / (1. - nu));
-    }
-  }
-  return out;
-}
-
-template <int DIM>
 double bulk_modulus(double mu, double nu);
 
 template <>
@@ -99,22 +77,6 @@ std::pair<Tensor4<DIM>, Tensor4<DIM>> isotropic_projectors() {
   Tensor4<DIM> J = I2 * I2.transpose() / DIM;
   Tensor4<DIM> K = I - J;
   return std::make_pair(J, K);
-}
-
-template <int DIM>
-Tensor4<DIM> stiffness_matrix(double mu, double nu) {
-  auto const [J, K] = isotropic_projectors<DIM>();
-  auto kappa = bulk_modulus<DIM>(mu, nu);
-  Tensor4<DIM> C = DIM * kappa * J + 2 * mu * K;
-  return C;
-}
-
-template <int DIM>
-Tensor4<DIM> compliance_matrix(double mu, double nu) {
-  auto const [J, K] = isotropic_projectors<DIM>();
-  auto kappa = bulk_modulus<DIM>(mu, nu);
-  Tensor4<DIM> S = J / (DIM * kappa) + K / (2 * mu);
-  return S;
 }
 
 std::vector<Vector<2>> gen_directions(int num_theta) {
@@ -142,6 +104,28 @@ std::vector<Vector<3>> gen_directions(int num_theta, int num_phi) {
     }
   }
   return directions;
+}
+
+template <int DIM>
+Tensor4<DIM> green_operator_matrix(Vector<DIM> const &n, double nu) {
+  Tensor4<DIM> out;
+  for (int ij = 0; ij < sym<DIM>; ij++) {
+    auto const [i, j] = unravel_index<DIM>(ij);
+    double const w_ij = ij < DIM ? 1. : std::numbers::sqrt2;
+    for (int kl = 0; kl < sym<DIM>; kl++) {
+      auto const [k, l] = unravel_index<DIM>(kl);
+      double const w_kl = kl < DIM ? 1. : std::numbers::sqrt2;
+      double const delta_ik = i == k ? 1. : 0.;
+      double const delta_il = i == l ? 1. : 0.;
+      double const delta_jk = j == k ? 1. : 0.;
+      double const delta_jl = j == l ? 1. : 0.;
+      out(ij, kl) = w_ij * w_kl *
+                    (0.25 * (delta_ik * n(j) * n(l) + delta_il * n(j) * n(k) +
+                             delta_jk * n(i) * n(l) + delta_jl * n(i) * n(k)) -
+                     0.5 * n(i) * n(j) * n(k) * n(l) / (1. - nu));
+    }
+  }
+  return out;
 }
 
 template <int DIM>
@@ -178,7 +162,9 @@ void test_hooke_apply() {
 template <int DIM>
 void test_apply_stiffness() {
   scapin::Hooke<double, DIM> gamma{1.2, 0.3};
-  Tensor4<DIM> C_exp = stiffness_matrix<DIM>(gamma.mu, gamma.nu);
+  auto const [J, K] = isotropic_projectors<DIM>();
+  auto kappa = bulk_modulus<DIM>(gamma.mu, gamma.nu);
+  Tensor4<DIM> C_exp = DIM * kappa * J + 2 * gamma.mu * K;
   Tensor4<DIM> C_act;
   Tensor2<DIM> eps = Tensor2<DIM>::Zero();
   Tensor2<DIM> sig = Tensor2<DIM>::Zero();
@@ -199,7 +185,9 @@ void test_apply_stiffness() {
 template <int DIM>
 void test_apply_compliance() {
   scapin::Hooke<double, DIM> gamma{1.2, 0.3};
-  Tensor4<DIM> S_exp = compliance_matrix<DIM>(gamma.mu, gamma.nu);
+  auto const [J, K] = isotropic_projectors<DIM>();
+  auto kappa = bulk_modulus<DIM>(gamma.mu, gamma.nu);
+  Tensor4<DIM> S_exp = J / (DIM * kappa) + K / (2 * gamma.mu);
   Tensor4<DIM> S_act;
   Tensor2<DIM> eps = Tensor2<DIM>::Zero();
   Tensor2<DIM> sig = Tensor2<DIM>::Zero();
