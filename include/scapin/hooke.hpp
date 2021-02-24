@@ -20,19 +20,11 @@ requires spatial_dimension<DIM> class Hooke {
 
   Real const mu;
   Real const nu;
-  Real const lambda;
-  Real compliance_I;
-  Real compliance_II;
   Real const atol;
 
   Hooke(Real const mu, Real const nu,
         Real const atol = 10 * std::numeric_limits<Real>::epsilon())
-      : mu{mu},
-        nu{nu},
-        lambda{2 * mu * nu / (1 - 2 * nu)},
-        compliance_I{1 / (2 * mu)},
-        compliance_II{DIM == 2 ? nu / (2 * mu) : nu / (2 * mu * (1 + nu))},
-        atol{atol} {}
+      : mu{mu}, nu{nu}, atol{atol} {}
 
   std::string repr() const {
     std::ostringstream stream;
@@ -123,6 +115,11 @@ requires spatial_dimension<DIM> class Hooke {
       eps[5] = compliance_I * sig[5];
     }
   }
+
+ private:
+  Real const lambda{2 * mu * nu / (1 - 2 * nu)};
+  Real const compliance_I{1 / (2 * mu)};
+  Real const compliance_II{DIM == 2 ? nu / (2 * mu) : nu / (2 * mu * (1 + nu))};
 };
 
 template <typename T, int DIM>
