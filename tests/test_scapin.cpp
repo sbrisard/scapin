@@ -1,4 +1,3 @@
-#include <array>
 #include <numbers>
 #include <stdexcept>
 
@@ -10,6 +9,9 @@
 
 template <int DIM>
 inline constexpr int sym = (DIM * (DIM + 1)) / 2;
+
+template <int DIM>
+using Vector = Eigen::Matrix<double, DIM, 1>;
 
 template <int DIM>
 using Tensor2 = Eigen::Matrix<double, sym<DIM>, 1>;
@@ -55,25 +57,25 @@ std::pair<int, int> unravel_index<3>(int ij) {
 }
 
 template <int DIM>
-void green_operator_matrix(std::array<double, DIM> const &n, double nu,
-                           std::array<double, sym<DIM> * sym<DIM>> &out) {
-  int ijkl = 0;
+Tensor4<DIM> green_operator_matrix(Vector<DIM> const &n, double nu) {
+  Tensor4<DIM> out;
   for (int ij = 0; ij < sym<DIM>; ij++) {
     auto const [i, j] = unravel_index<DIM>(ij);
     double const w_ij = ij < DIM ? 1. : std::numbers::sqrt2;
-    for (int kl = 0; kl < sym<DIM>; kl++, ijkl++) {
+    for (int kl = 0; kl < sym<DIM>; kl++) {
       auto const [k, l] = unravel_index<DIM>(kl);
       double const w_kl = kl < DIM ? 1. : std::numbers::sqrt2;
       double const delta_ik = i == k ? 1. : 0.;
       double const delta_il = i == l ? 1. : 0.;
       double const delta_jk = j == k ? 1. : 0.;
       double const delta_jl = j == l ? 1. : 0.;
-      out[ijkl] = w_ij * w_kl *
-                  (0.25 * (delta_ik * n[j] * n[l] + delta_il * n[j] * n[k] +
-                           delta_jk * n[i] * n[l] + delta_jl * n[i] * n[k]) -
-                   0.5 * n[i] * n[j] * n[k] * n[l] / (1. - nu));
+      out(ij, kl) = w_ij * w_kl *
+                    (0.25 * (delta_ik * n(j) * n(l) + delta_il * n(j) * n(k) +
+                             delta_jk * n(i) * n(l) + delta_jl * n(i) * n(k)) -
+                     0.5 * n(i) * n(j) * n(k) * n(l) / (1. - nu));
     }
   }
+  return out;
 }
 
 template <int DIM>
@@ -92,7 +94,7 @@ double bulk_modulus<3>(double mu, double nu) {
 template <int DIM>
 Tensor4<DIM> stiffness_matrix(double mu, double nu) {
   Tensor2<DIM> I2 = Tensor2<DIM>::Zero();
-  for (int i = 0; i < DIM; i++) I2(i, 0) = 1.;
+  for (int i = 0; i < DIM; i++) I2(i) = 1.;
   Tensor4<DIM> I = Tensor4<DIM>::Identity();
   Tensor4<DIM> J = I2 * I2.transpose() / DIM;
   Tensor4<DIM> K = I - J;
@@ -101,20 +103,20 @@ Tensor4<DIM> stiffness_matrix(double mu, double nu) {
   return C;
 }
 
-std::vector<std::array<double, 2>> gen_directions(int num_theta) {
+std::vector<Vector<2>> gen_directions(int num_theta) {
   double const delta_theta = std::numbers::pi / (num_theta - 1.);
-  std::vector<std::array<double, 2>> directions;
+  std::vector<Vector<2>> directions;
   for (int i = 0; i < num_theta; i++) {
     double theta = i * delta_theta;
-    directions.push_back({cos(theta), sin(theta)});
+    directions.push_back(Vector<2>{cos(theta), sin(theta)});
   }
   return directions;
 }
 
-std::vector<std::array<double, 3>> gen_directions(int num_theta, int num_phi) {
+std::vector<Vector<3>> gen_directions(int num_theta, int num_phi) {
   double const delta_theta = std::numbers::pi / (num_theta - 1.);
   double const delta_phi = 2 * std::numbers::pi / double(num_phi);
-  std::vector<std::array<double, 3>> directions{};
+  std::vector<Vector<3>> directions{};
   for (int i = 0; i < num_theta; i++) {
     double const theta = i * delta_theta;
     double const cos_theta = cos(theta);
@@ -122,7 +124,7 @@ std::vector<std::array<double, 3>> gen_directions(int num_theta, int num_phi) {
     for (int j = 0; j < num_phi; j++) {
       double const phi = j * delta_phi;
       directions.push_back(
-          {sin_theta * cos(phi), sin_theta * sin(phi), cos_theta});
+          Vector<3>{sin_theta * cos(phi), sin_theta * sin(phi), cos_theta});
     }
   }
   return directions;
@@ -130,39 +132,30 @@ std::vector<std::array<double, 3>> gen_directions(int num_theta, int num_phi) {
 
 template <int DIM>
 void test_hooke_apply() {
-  double const mu = 1.0;
-  double const nu = 0.3;
-
   std::vector<double> norms{1.2, 3.4, 5.6};
-
-  scapin::Hooke<double, DIM> gamma{mu, nu};
-  std::array<double, sym<DIM> * sym<DIM>> exp{};
-  std::array<double, sym<DIM> * sym<DIM>> act{};
-  std::array<double, sym<DIM>> tau{};
-  std::array<double, sym<DIM>> eps{};
-
-  std::vector<std::array<double, DIM>> directions;
+  scapin::Hooke<double, DIM> gamma{1.0, 0.3};
+  std::vector<Vector<DIM>> directions;
   if constexpr (DIM == 2) {
     directions = gen_directions(20);
   } else if constexpr (DIM == 3) {
     directions = gen_directions(10, 20);
   }
   for (auto n : directions) {
-    green_operator_matrix<DIM>(n, nu, exp);
+    auto exp = green_operator_matrix<DIM>(n, gamma.nu);
+    Tensor4<DIM> act;
     for (auto const norm : norms) {
-      std::array<double, DIM> k{};
-      std::transform(n.cbegin(), n.cend(), k.begin(),
-                     [norm](auto n_) { return norm * n_; });
-      for (int col = 0; col < sym<DIM>; col++) {
-        tau[col] = 1.;
+      Vector<DIM> k = norm * n;
+      for (int i = 0; i < sym<DIM>; i++) {
+        Tensor2<DIM> tau = Tensor2<DIM>::Zero();
+        tau(i) = 1.;
+        Tensor2<DIM> eps;
         gamma.apply(k.data(), tau.data(), eps.data());
-        for (int row = 0; row < sym<DIM>; row++) {
-          act[col + sym<DIM> * row] = eps[row];
-        }
-        tau[col] = 0.;
+        act.col(i) = eps;
       }
-      for (int ijkl = 0; ijkl < sym<DIM> * sym<DIM>; ijkl++) {
-        REQUIRE(act[ijkl] == Approx(exp[ijkl]).epsilon(1e-12).margin(1e-12));
+      for (int i = 0; i < sym<DIM> ; ++i) {
+        for (int j = 0; j < sym<DIM>; ++j) {
+          REQUIRE(act(i, j) == Approx(exp(i, j)).epsilon(1e-12).margin(1e-12));
+        }
       }
     }
   }
@@ -176,10 +169,10 @@ void test_apply_stiffness() {
   Tensor2<DIM> eps = Tensor2<DIM>::Zero();
   Tensor2<DIM> sig = Tensor2<DIM>::Zero();
   for (int i = 0; i < sym<DIM>; i++) {
-    eps(i, 0) = 1.0;
+    eps(i) = 1.0;
     gamma.apply_stiffness(eps.data(), sig.data());
     C_act.col(i) = sig;
-    eps(i, 0) = 0.0;
+    eps(i) = 0.0;
   }
 
   for (int i = 0; i < sym<DIM>; i++) {
